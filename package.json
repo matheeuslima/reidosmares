@@ -1,0 +1,28 @@
+{
+  "name": "reidosmares",
+  "version": "1.0.0",
+  "description": "Bot para gerência da uma loja do Donu",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/renatoyzy/reidosmares.git"
+  },
+  "keywords": [
+    "reidosmares"
+  ],
+  "author": "Renato",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/renatoyzy/reidosmares/issues"
+  },
+  "homepage": "https://github.com/renatoyzy/reidosmares#readme",
+  "type": "module",
+  "dependencies": {
+    "discord.js": "^14.22.1",
+    "dotenv": "^17.2.1",
+    "node-cron": "^4.2.1"
+  }
+}
