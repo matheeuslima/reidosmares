@@ -1,3 +1,7 @@
 {
-    "name": "Rei dos Mares BOT"
+    "name": "Rei dos Mares BOT",
+    "id": "1409689613483769948",
+    "channels": {
+        "logs": "1403290154520547443"
+    }
 }

@@ -170,7 +170,7 @@ export async function deployCommands(serverId) {
         commands.push(command.data.toJSON());
     }
 
-    const rest = new REST({ version: '10' }).setToken(process.env.DISCORD_TOKEN);
+    const rest = new REST({ version: '10' }).setToken(process.env.DISCORD_BOT_TOKEN);
 
     // Busca os comandos atuais do servidor
     const guild = await client.guilds.fetch(serverId);
