@@ -71,7 +71,7 @@ async function handleChatInput(interaction) {
         console.error(error);
     }
 
-    const logChannel = interaction.guild.channels.cache.get(botConfig.channels.logs);
+    const logChannel = interaction.guild.channels.cache.get(botConfig.channel.logs);
 
     if (logChannel) {
         const fields = [
@@ -119,7 +119,7 @@ async function handleButton(interaction) {
 
     await buttonHandler.execute(interaction);
 
-    const logChannel = interaction.guild.channels.cache.get(botConfig.channels.logs);
+    const logChannel = interaction.guild.channels.cache.get(botConfig.channel.logs);
 
     if (logChannel) {
         await logChannel.send({
@@ -176,7 +176,7 @@ async function handleSelectMenu(interaction) {
     await selectHandler.execute(interaction);
 
     // Log igual antes
-    const logChannel = interaction.guild.channels.cache.get(botConfig.channels.logs);
+    const logChannel = interaction.guild.channels.cache.get(botConfig.channel.logs);
     if (logChannel) {
         await logChannel.send({
             embeds: [
@@ -222,7 +222,7 @@ async function handleModalSubmit(interaction) {
     await modalHandler.execute(interaction);
 
     // Log igual antes
-    const logChannel = interaction.guild.channels.cache.get(botConfig.channels.logs);
+    const logChannel = interaction.guild.channels.cache.get(botConfig.channel.logs);
     if (logChannel) {
         await logChannel.send({
             embeds: [
