@@ -40,7 +40,7 @@ export default {
                     ],
                     components: [
                         new ActionRowBuilder()
-                        .addComponents([
+                        .setComponents([
                             new ButtonBuilder()
                             .setCustomId('create_cart')
                             .setLabel('Criar carrinho')

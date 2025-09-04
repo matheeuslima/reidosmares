@@ -23,6 +23,8 @@
   "dependencies": {
     "discord.js": "^14.22.1",
     "dotenv": "^17.2.1",
-    "node-cron": "^4.2.1"
+    "mongodb": "^6.19.0",
+    "node-cron": "^4.2.1",
+    "util": "^0.12.5"
   }
 }

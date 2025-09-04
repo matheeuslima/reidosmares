@@ -26,7 +26,7 @@ export default {
             ],
             components: [
                 new ActionRowBuilder()
-                .addComponents([
+                .setComponents([
                     new StringSelectMenuBuilder()
                     .setPlaceholder('O que você quer fazer')
                     .setCustomId('panel_select')
