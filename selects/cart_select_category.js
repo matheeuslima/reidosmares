@@ -28,6 +28,7 @@ export default {
         try {
             await client.connect();
             const products = await client.db().collection('products').find({category: interaction.values[0]}).toArray();
+            if(!products?.length) return interaction.reply({content: `Não há produtos nessa categoria.`, flags: [MessageFlags.Ephemeral]})
 
             await interaction.deferReply().then(reply => reply?.delete());
 
