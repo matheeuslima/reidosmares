@@ -44,14 +44,8 @@ export default {
 
         try {
             await dbClient.connect();
-            /*await dbClient.db().collection('products').insertOne({
-                name: 'Produto de teste',
-                id: 'teste',
-                category: 'Teste',
-                price: 7.00
-            })*/
-            const products = await dbClient.db().collection('products').find().toArray();
-            const categories = new Set(products.map(product => product.category));
+
+            const categories = await dbClient.db().collection('product_categories').find().toArray();
             const customEmbed = JSON.parse((await dbClient.db().collection('embeds').findOne({id: 'cart_starter'})).code);
 
             await channel.send({
@@ -67,8 +61,8 @@ export default {
                         new StringSelectMenuBuilder()
                         .setPlaceholder('Selecionar categoria')
                         .setCustomId('cart_select_category')
-                        .setOptions(Array.from(categories).map(category => {
-                            return {label: category, value: category}
+                        .setOptions(categories.map(category => {
+                            return {label: category.name, value: category.id, emoji: category.emoji, description: category.description}
                         }) || [{label: 'Não há produtos disponíveis', value: 'unavailable', emoji: '❔'}])
                     ]),
                     new ActionRowBuilder()

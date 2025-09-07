@@ -3,6 +3,7 @@ import {
     ButtonBuilder,
     ButtonStyle,
     ChatInputCommandInteraction,
+    Colors,
     EmbedBuilder,
     SlashCommandBuilder,
     StringSelectMenuBuilder,
@@ -22,7 +23,8 @@ export default {
         await interaction.editReply({
             embeds: [
                 new EmbedBuilder()
-                .setDescription('Painel')
+                .setDescription('Painel administrativo')
+                .setColor(Colors.Blurple)
             ],
             components: [
                 new ActionRowBuilder()
@@ -37,6 +39,11 @@ export default {
                         .setEmoji('🛍')
                         .setDescription('Gerencie produtos!')
                         .setValue('manage_products'),
+                        new StringSelectMenuOptionBuilder()
+                        .setLabel('Gerenciar categorias de produtos')
+                        .setEmoji('📁')
+                        .setDescription('Gerencie categorias de produtos!')
+                        .setValue('manage_product_categories'),
                         new StringSelectMenuOptionBuilder()
                         .setLabel('Definir embeds')
                         .setEmoji('🤖')

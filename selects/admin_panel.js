@@ -1,5 +1,7 @@
 import {
     ActionRowBuilder,
+    ButtonBuilder,
+    ButtonStyle,
     Colors,
     EmbedBuilder,
     MessageFlags,
@@ -39,10 +41,35 @@ export default {
                         ]
                     })
                     break;
-                }
+                };
+
+                case "manage_product_categories": {
+                    interaction.message.edit({
+                        embeds: [
+                            new EmbedBuilder()
+                            .setColor(Colors.Blurple)
+                            .setDescription('Gerenciar categorias de produtos')
+                        ],
+                        components: [
+                            new ActionRowBuilder()
+                            .setComponents([
+                                new ButtonBuilder()
+                                .setCustomId('add_product_category')
+                                .setLabel('Adicionar')
+                                .setStyle(ButtonStyle.Success),
+                                new ButtonBuilder()
+                                .setCustomId('delete_product_category')
+                                .setLabel('Excluir')
+                                .setStyle(ButtonStyle.Danger),
+                            ])
+                        ]
+                    })
+                    break;
+                };
+
                 default: {
                     break;
-                }
+                };
             }
             
         } catch (error) {
