@@ -13,7 +13,7 @@ export default {
 
     data: new SlashCommandBuilder()
     .setName("painel")
-    .setDescription("painel"),
+    .setDescription("[Administrativo] Gerencie opções do bot."),
 
     /**
      * @param {ChatInputCommandInteraction} interaction 
@@ -40,7 +40,7 @@ export default {
                         new StringSelectMenuOptionBuilder()
                         .setLabel('Definir embeds')
                         .setEmoji('🤖')
-                        .setDescription('Defin embeds!')
+                        .setDescription('Defina embeds!')
                         .setValue('define_embeds'),
                         new StringSelectMenuOptionBuilder()
                         .setLabel('Definir canais')

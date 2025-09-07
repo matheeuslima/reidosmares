@@ -52,9 +52,12 @@ export default {
             })*/
             const products = await dbClient.db().collection('products').find().toArray();
             const categories = new Set(products.map(product => product.category));
+            const customEmbed = JSON.parse((await dbClient.db().collection('embeds').findOne({id: 'cart_starter'})).code);
 
             await channel.send({
+                content: customEmbed['content'] || '',
                 embeds: [
+                    customEmbed['embed'] ||
                     new EmbedBuilder()
                     .setDescription(`Carrinho de ${interaction.user.username}`)
                 ],
