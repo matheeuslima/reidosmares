@@ -24,24 +24,26 @@ export default {
         try {
             await client.connect();
 
-            const categoryName = interaction.fields.getTextInputValue('category_name');
-            const categoryId = interaction.fields.getTextInputValue('category_id');
-            const categoryEmoji = interaction.fields.getTextInputValue('category_emoji');
-            const categoryDescription = interaction.fields.getTextInputValue('category_description');
+            const productName = interaction.fields.getTextInputValue('product_name');
+            const productId = interaction.fields.getTextInputValue('product_id');
+            const productDescription = interaction.fields.getTextInputValue('product_description');
+            const productCategory  = interaction.fields.getTextInputValue('product_category');
+            const productPrice = interaction.fields.getTextInputValue('product_price');
 
-            await client.db().collection("product_categories").insertOne({
-                name: categoryName,
-                id: categoryId,
-                emoji: categoryEmoji,
-                description: categoryDescription
+            await client.db().collection("products").insertOne({
+                name: productName,
+                id: productId,
+                category: productCategory,
+                description: productDescription,
+                price: parseInt(productPrice).toFixed(2)
             })
 
             await interaction.reply({
-                content: `Categoria de produtos "${categoryId}" criada com sucesso.`,
+                content: `Produto "${productId}" adicionado com sucesso.`,
                 embeds: [
                     new EmbedBuilder()
                     .setColor(Colors.Green)
-                    .setDescription(`# ${categoryEmoji} ${categoryName}\n${categoryDescription}`)
+                    .setDescription(`# ${productName}\n${productDescription}\n- Preço: R$${parseInt(productPrice).toFixed(2)}\n- Categoria: ${productCategory}`)
                 ],
                 flags: [MessageFlags.Ephemeral]
             });

@@ -67,6 +67,30 @@ export default {
                     break;
                 };
 
+                case "manage_products": {
+                    interaction.message.edit({
+                        embeds: [
+                            new EmbedBuilder()
+                            .setColor(Colors.Blurple)
+                            .setDescription('Gerenciar produtos')
+                        ],
+                        components: [
+                            new ActionRowBuilder()
+                            .setComponents([
+                                new ButtonBuilder()
+                                .setCustomId('add_product')
+                                .setLabel('Adicionar')
+                                .setStyle(ButtonStyle.Success),
+                                new ButtonBuilder()
+                                .setCustomId('delete_product')
+                                .setLabel('Excluir')
+                                .setStyle(ButtonStyle.Danger),
+                            ])
+                        ]
+                    })
+                    break;
+                };
+
                 default: {
                     break;
                 };
