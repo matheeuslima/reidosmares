@@ -1,5 +1,8 @@
 import {
     ActionRowBuilder,
+    ButtonBuilder,
+    ButtonStyle,
+    Collection,
     MessageFlags,
     StringSelectMenuBuilder,
     StringSelectMenuInteraction
@@ -24,7 +27,6 @@ export default {
         
         try {
             await client.connect();
-            
             const products = await client.db().collection('products').find({category: interaction.values[0]}).toArray();
 
             await interaction.deferReply().then(reply => reply?.delete());
@@ -45,6 +47,17 @@ export default {
                                 description: product.description
                             }
                         }) || [{label: 'Não há produtos disponíveis', value: 'unavailable', emoji: '❔'}])
+                    ]),
+                    new ActionRowBuilder()
+                    .setComponents([
+                        new ButtonBuilder()
+                        .setLabel('Voltar')
+                        .setCustomId('voltar1')
+                        .setStyle(ButtonStyle.Secondary),
+                        new ButtonBuilder()
+                        .setLabel('Prosseguir ao carrinho')
+                        .setCustomId('prosseguir')
+                        .setStyle(ButtonStyle.Primary)
                     ])
                 ]
             })

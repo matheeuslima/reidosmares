@@ -10,7 +10,7 @@ export default {
      */
     async execute(oldThread, newThread) {
         if (client.tickets?.has(newThread.id) && newThread.archived) {
-            client.tickets = client.tickets.filter(value => value != newThread.id);
+            client.tickets.delete(newThread.id);
             newThread.delete('Carrinho finalizado');
         }
     }

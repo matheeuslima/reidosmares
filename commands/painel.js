@@ -29,7 +29,7 @@ export default {
                 .setComponents([
                     new StringSelectMenuBuilder()
                     .setPlaceholder('O que você quer fazer')
-                    .setCustomId('panel_select')
+                    .setCustomId('admin_panel')
                     .setMaxValues(1)
                     .setOptions([
                         new StringSelectMenuOptionBuilder()
