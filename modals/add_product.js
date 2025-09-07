@@ -35,7 +35,7 @@ export default {
                 id: productId,
                 category: productCategory,
                 description: productDescription,
-                price: parseInt(productPrice).toFixed(2)
+                price: parseFloat(productPrice)
             })
 
             await interaction.reply({

@@ -8,6 +8,16 @@ import {
     StringSelectMenuBuilder,
     StringSelectMenuInteraction,
 } from "discord.js";
+import { MongoClient, ServerApiVersion } from "mongodb";
+import "dotenv/config";
+
+const client = new MongoClient(process.env.MONGODB_URI, {
+  serverApi: {
+    version: ServerApiVersion.v1,
+    strict: true,
+    deprecationErrors: true,
+  }
+});
 
 export default {
 
@@ -17,11 +27,12 @@ export default {
     async execute(interaction) {
         
         try {
+            await client.connect();
             await interaction.deferReply().then(reply => reply?.delete());
             
             switch(interaction.values[0]) {
                 case "define_embeds": {
-                    interaction.message.edit({
+                    await interaction.message.edit({
                         embeds: [
                             new EmbedBuilder()
                             .setColor(Colors.Blurple)
@@ -44,11 +55,12 @@ export default {
                 };
 
                 case "manage_product_categories": {
-                    interaction.message.edit({
+                    await interaction.message.edit({
                         embeds: [
                             new EmbedBuilder()
                             .setColor(Colors.Blurple)
-                            .setDescription('Gerenciar categorias de produtos')
+                            .setTitle('Gerenciar categorias de produtos')
+                            .setDescription(`### Atuais categorias:\n- ${(await client.db().collection('product_categories').find().toArray()).map(category => `**${category.emoji} ${category.name} (${category.id}):** ${category.description}`).join('\n- ')}`)
                         ],
                         components: [
                             new ActionRowBuilder()
@@ -68,11 +80,16 @@ export default {
                 };
 
                 case "manage_products": {
-                    interaction.message.edit({
+                    
+                    const products = await client.db().collection('products').find().toArray();
+                    const categories = new Set(products.map(product => product.category));
+
+                    await interaction.message.edit({
                         embeds: [
                             new EmbedBuilder()
                             .setColor(Colors.Blurple)
-                            .setDescription('Gerenciar produtos')
+                            .setTitle('Gerenciar produtos')
+                            .setDescription(`### Atuais produtos:\n- ${Array.from(categories).map(category => `**${category || 'Sem categoria'}**\n  - ${products.filter(product => product.category == category).map(product => `**${product.name} (${product.id}, R$${product.price.toFixed(2)})**: ${product.description}`).join('\n  - ')}`).join('\n- ')}`)
                         ],
                         components: [
                             new ActionRowBuilder()
@@ -99,6 +116,8 @@ export default {
         } catch (error) {
             console.error(error);
             await interaction.reply({content: `Ocorreu um erro na execução dessa ação. ${error.message}.`, flags: [MessageFlags.Ephemeral]});
+        } finally {
+            await client.close();
         }
     }
 
