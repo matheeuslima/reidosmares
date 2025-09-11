@@ -1,7 +1,11 @@
 import {
     EmbedBuilder,
     MessageFlags,
-    StringSelectMenuInteraction
+    StringSelectMenuInteraction,
+    ModalBuilder,
+    TextInputBuilder,
+    TextInputStyle,
+    ActionRowBuilder
 } from "discord.js";
 import client from "../src/Client.js";
 import { MongoClient, ServerApiVersion } from "mongodb";
@@ -33,14 +37,28 @@ export default {
 
             if(ticket.cart.length + products.length > 25) return await interaction.reply({ content: 'Você atingiu o limite máximo de 25 produtos no carrinho.', flags: [MessageFlags.Ephemeral] });
             if(ticket.cart.find(p => products.map(pr => pr.id).includes(p.id))) return await interaction.reply({ content: 'Você já adicionou um ou mais desses produtos ao carrinho.', flags: [MessageFlags.Ephemeral] });
-            
+
+            const modal = new ModalBuilder()
+            .setCustomId(`cart_set_product_amount:${products.map(p => p.id).join(",")}`)
+            .setTitle('Defina a quantidade de cada produto');
+
             products.forEach(product => {
-                ticket.cart.push(product);
+                const input = new TextInputBuilder()
+                .setCustomId(`amount_${product.id}`)
+                .setLabel(`Quantidade de ${product.name}`)
+                .setStyle(TextInputStyle.Short)
+                .setMinLength(1)
+                .setMaxLength(3)
+                .setPlaceholder('1')
+                .setValue('1')
+                .setRequired(true);
+
+                modal.addComponents(new ActionRowBuilder().addComponents(input));
             });
 
-            client.tickets.set(interaction.channelId, ticket);
+            await interaction.showModal(modal);
 
-            await interaction.reply({ content: 'Produtos adicionados ao carrinho!', flags: [MessageFlags.Ephemeral] });
+            // O restante do fluxo (adicionar ao carrinho) deve ser feito no handler do modal
         } catch (error) {
             console.error(error);
             if (!interaction.replied) {
@@ -56,12 +74,12 @@ export default {
                     .setFields([
                         {
                             name: `🛒 Carrinho`,
-                            value: client.tickets?.get(interaction.channelId)?.cart?.map(product => `- ${product.name}`).join('\n') || 'Nenhum produto adicionado ainda.',
+                            value: client.tickets?.get(interaction.channelId)?.cart?.map(product => `- ${product.amount}x ${product.name} (R$${product.price.toFixed(2)})`).join('\n') || 'Nenhum produto adicionado ainda.',
                             inline: true
                         },
                         {
                             name: `💰 Total`,
-                            value: `R$${(client.tickets?.get(interaction.channelId)?.cart?.reduce((acc, product) => acc + product.price, 0) || 0).toFixed(2)}`,
+                            value: `R$${(client.tickets?.get(interaction.channelId)?.cart?.reduce((acc, product) => acc + product.price*product.amount, 0) || 0).toFixed(2)}`,
                             inline: true
                         }
                     ])

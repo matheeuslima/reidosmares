@@ -3,7 +3,6 @@ import {
     ButtonBuilder,
     ButtonInteraction,
     ButtonStyle,
-    EmbedBuilder,
     StringSelectMenuBuilder,
 } from "discord.js";
 import { MongoClient, ServerApiVersion } from "mongodb";
