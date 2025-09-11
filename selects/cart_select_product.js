@@ -30,6 +30,9 @@ export default {
             }).toArray();
 
             if (!ticket.cart) ticket.cart = [];
+
+            if(ticket.cart.length + products.length > 25) return await interaction.reply({ content: 'Você atingiu o limite máximo de 25 produtos no carrinho.', flags: [MessageFlags.Ephemeral] });
+            if(ticket.cart.find(p => products.map(pr => pr.id).includes(p.id))) return await interaction.reply({ content: 'Você já adicionou um ou mais desses produtos ao carrinho.', flags: [MessageFlags.Ephemeral] });
             
             products.forEach(product => {
                 ticket.cart.push(product);
@@ -53,7 +56,12 @@ export default {
                     .setFields([
                         {
                             name: `🛒 Carrinho`,
-                            value: `Produtos no carrinho: ${client.tickets.get(interaction.channelId)?.cart?.length || 0}`,
+                            value: client.tickets?.get(interaction.channelId)?.cart?.map(product => `- ${product.name}`).join('\n') || 'Nenhum produto adicionado ainda.',
+                            inline: true
+                        },
+                        {
+                            name: `💰 Total`,
+                            value: `R$${(client.tickets?.get(interaction.channelId)?.cart?.reduce((acc, product) => acc + product.price, 0) || 0).toFixed(2)}`,
                             inline: true
                         }
                     ])

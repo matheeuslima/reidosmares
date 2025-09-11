@@ -30,12 +30,6 @@ export default {
             const customEmbed = JSON.parse((await dbClient.db().collection('embeds').findOne({id: 'cart_starter'})).code);
 
             interaction.message.editable && await interaction.message.edit({
-                content: customEmbed['content'] || '',
-                embeds: [
-                    customEmbed['embed'] ||
-                    new EmbedBuilder()
-                    .setDescription(`Carrinho de ${interaction.user.username}`)
-                ],
                 components: [
                     new ActionRowBuilder()
                     .setComponents([
