@@ -3,13 +3,9 @@ import {
     ButtonBuilder,
     ButtonInteraction,
     ButtonStyle,
-    ChannelType,
-    Collection,
     EmbedBuilder,
-    MessageFlags,
     StringSelectMenuBuilder,
 } from "discord.js";
-import client from "../src/Client.js";
 import { MongoClient, ServerApiVersion } from "mongodb";
 import "dotenv/config";
 
@@ -27,28 +23,13 @@ export default {
      * @param {ButtonInteraction} interaction
      */
     async execute(interaction) {
-        await interaction.reply({content: 'Aguarde...', flags: [MessageFlags.Ephemeral]});
-
-        const channel = await interaction.channel.threads.create({
-            name: `Carrinho de ${interaction.user.username}`,
-            autoArchiveDuration: 60,
-            type: ChannelType.PrivateThread,
-            reason: `${interaction.user.username} abriu um carrinho`
-        });
-
-        channel.send({
-            content: `-# <@&1339004186129338501> <@${interaction.user.id}>`
-        }).then((msg) => {
-            msg.delete();
-        });
-
         try {
             await dbClient.connect();
 
             const categories = await dbClient.db().collection('product_categories').find().toArray();
             const customEmbed = JSON.parse((await dbClient.db().collection('embeds').findOne({id: 'cart_starter'})).code);
 
-            await channel.send({
+            interaction.message.editable && await interaction.message.edit({
                 content: customEmbed['content'] || '',
                 embeds: [
                     customEmbed['embed'] ||
@@ -69,20 +50,17 @@ export default {
                     .setComponents([
                         new ButtonBuilder()
                         .setLabel('Fechar carrinho')
-                        .setEmoji('🚮')
                         .setCustomId('close_cart')
+                        .setEmoji('🚮')
                         .setStyle(ButtonStyle.Danger)
                     ])
                 ]
             });
-
-            await interaction.editReply({content: `🛒 Seu carrinho foi criado <#${channel.id}>`});
-
-            client.tickets ? client.tickets.set(channel.id, {}) : client.tickets = new Collection().set(channel.id, {});
             
+            await interaction.deferReply().then(reply => reply.delete());
         } catch (error) {
             console.error(error);
-            await interaction.editReply({content: `Ocorreu um erro na execução dessa ação. ${error.message}.`});
+            await interaction.reply({content: `Ocorreu um erro na execução dessa ação. ${error.message}.`});
         } finally {
             await dbClient.close();
         }

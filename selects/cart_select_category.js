@@ -40,6 +40,8 @@ export default {
                         new StringSelectMenuBuilder()
                         .setPlaceholder('Selecionar produtos')
                         .setCustomId('cart_select_product')
+                        .setMinValues(1)
+                        .setMaxValues(products.length)
                         .setOptions(products.map(product => {
                             return {
                                 label: `${product.name} (R$${product.price})`,
@@ -53,7 +55,7 @@ export default {
                     .setComponents([
                         new ButtonBuilder()
                         .setLabel('Voltar')
-                        .setCustomId('voltar1')
+                        .setCustomId('back_cart')
                         .setStyle(ButtonStyle.Secondary),
                         new ButtonBuilder()
                         .setLabel('Prosseguir ao carrinho')
