@@ -55,11 +55,13 @@ export default {
                     .setComponents([
                         new ButtonBuilder()
                         .setLabel('Voltar')
+                        .setEmoji('⬅️')
                         .setCustomId('back_cart')
                         .setStyle(ButtonStyle.Secondary),
                         new ButtonBuilder()
-                        .setLabel('Prosseguir ao carrinho')
-                        .setCustomId('prosseguir')
+                        .setLabel('Finalizar carrinho e ir à compra')
+                        .setEmoji('🤑')
+                        .setCustomId('follow_purchase')
                         .setStyle(ButtonStyle.Primary)
                     ])
                 ]

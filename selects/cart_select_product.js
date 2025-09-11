@@ -1,4 +1,5 @@
 import {
+    EmbedBuilder,
     MessageFlags,
     StringSelectMenuInteraction
 } from "discord.js";
@@ -44,6 +45,20 @@ export default {
             }
         } finally {
             await dbClient.close();
+
+            interaction.message.editable &&
+            await interaction.message.edit({
+                embeds: [
+                    new EmbedBuilder(interaction.message.embeds[0].data)
+                    .setFields([
+                        {
+                            name: `🛒 Carrinho`,
+                            value: `Produtos no carrinho: ${client.tickets.get(interaction.channelId)?.cart?.length || 0}`,
+                            inline: true
+                        }
+                    ])
+                ],
+            });
         }
     }
 }

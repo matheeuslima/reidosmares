@@ -29,6 +29,8 @@ export default {
     async execute(interaction) {
         await interaction.reply({content: 'Aguarde...', flags: [MessageFlags.Ephemeral]});
 
+        if(client.tickets?.find(t => t.author === interaction.user.id)) return await interaction.editReply({content: 'Você já possui um carrinho aberto!'});
+
         const channel = await interaction.channel.threads.create({
             name: `Carrinho de ${interaction.user.username}`,
             autoArchiveDuration: 60,
@@ -59,7 +61,7 @@ export default {
                     new ActionRowBuilder()
                     .setComponents([
                         new StringSelectMenuBuilder()
-                        .setPlaceholder('Selecionar categoria')
+                        .setPlaceholder('Selecione uma categoria!')
                         .setCustomId('cart_select_category')
                         .setOptions(categories.map(category => {
                             return {label: category.name, value: category.id, emoji: category.emoji, description: category.description}
@@ -76,9 +78,14 @@ export default {
                 ]
             });
 
+            const ticket = {
+                author: interaction.user.id,
+                cart: []
+            };
+
             await interaction.editReply({content: `🛒 Seu carrinho foi criado <#${channel.id}>`});
 
-            client.tickets ? client.tickets.set(channel.id, {}) : client.tickets = new Collection().set(channel.id, {});
+            client.tickets ? client.tickets.set(channel.id, ticket) : client.tickets = new Collection().set(channel.id, ticket);
             
         } catch (error) {
             console.error(error);

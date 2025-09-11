@@ -40,7 +40,7 @@ export default {
                     new ActionRowBuilder()
                     .setComponents([
                         new StringSelectMenuBuilder()
-                        .setPlaceholder('Selecionar categoria')
+                        .setPlaceholder('Selecione uma categoria!')
                         .setCustomId('cart_select_category')
                         .setOptions(categories.map(category => {
                             return {label: category.name, value: category.id, emoji: category.emoji, description: category.description}
