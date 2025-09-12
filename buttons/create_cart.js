@@ -80,6 +80,8 @@ export default {
 
             const ticket = {
                 author: interaction.user.id,
+                seller: undefined,
+                paid: false,
                 cart: []
             };
 

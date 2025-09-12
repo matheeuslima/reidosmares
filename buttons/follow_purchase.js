@@ -2,7 +2,10 @@
 import {
 	ButtonInteraction,
 	EmbedBuilder,
-    Colors
+    Colors,
+	ActionRowBuilder,
+	ButtonBuilder,
+	ButtonStyle
 } from "discord.js";
 import client from "../src/Client.js";
 import "dotenv/config";
@@ -27,11 +30,20 @@ export default {
 				.setFields([
                     { name: `🛍️ Produtos`, value: ticket.cart.map(p => `- ${p.amount}x ${p.name} (R$${(p.price * p.amount).toFixed(2)})`).join('\n') || 'Nenhum produto adicionado.', inline: false },
 					{ name: `💳 Valor total`, value: `R$${total.toFixed(2)}`, inline: false },
-                    { name: '💱 Chave Pix', value: `${process.env.PIX_KEY}`, inline: false },
-					{ name: '🫢 Outros métodos', value: `Aguarde um vendedor te responder.`, inline: false }
+					{ name: '🫢 Realizar pagamento', value: `Aguarde um vendedor te responder.`, inline: false }
 				])
 				.setColor(Colors.Green)
-            ]
+            ],
+			components: [
+				new ActionRowBuilder()
+				.setComponents(
+					new ButtonBuilder()
+					.setCustomId('finish_purchase')
+					.setStyle(ButtonStyle.Success)
+					.setEmoji('✅')
+					.setLabel('Marcar compra como paga')
+				)
+			]
         });
 
         interaction.message.editable &&

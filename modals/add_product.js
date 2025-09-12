@@ -30,6 +30,13 @@ export default {
             const productCategory  = interaction.fields.getTextInputValue('product_category');
             const productPrice = interaction.fields.getTextInputValue('product_price');
 
+            // limite de 25 produtos por categoria
+            if((await client.db().collection("products").countDocuments({category: productCategory})) >= 25) return await interaction.reply({content: `A categoria "${productCategory}" já atingiu o limite máximo de 25 produtos.`, flags: [MessageFlags.Ephemeral]});
+            
+            // verifica se o ID do produto já existe
+            if(await client.db().collection("products").findOne({id: productId})) return await interaction.reply({content: `Já existe um produto com o ID "${productId}".`, flags: [MessageFlags.Ephemeral]});
+
+            // insere no banco
             await client.db().collection("products").insertOne({
                 name: productName,
                 id: productId,

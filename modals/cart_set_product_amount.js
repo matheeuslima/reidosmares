@@ -61,7 +61,7 @@ export default {
 
 			client.tickets.set(interaction.channelId, ticket);
 
-			await interaction.reply({ content: 'Produtos adicionados ao carrinho!', flags: [MessageFlags.Ephemeral] });
+			await interaction.deferReply().then(reply => reply.delete());
 
 			// Atualiza embed do carrinho
 			interaction.message && interaction.message.editable &&
