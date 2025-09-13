@@ -1,4 +1,4 @@
-import { ButtonInteraction, Colors, EmbedBuilder, MessageFlags } from "discord.js";
+import { ActionRowBuilder, ButtonBuilder, ButtonInteraction, ButtonStyle, Colors, EmbedBuilder, MessageFlags } from "discord.js";
 import client from "../src/Client.js";
 import botConfig from "../config.json" with { type: "json" };
 import { MongoClient, ServerApiVersion } from "mongodb";
@@ -42,7 +42,7 @@ export default {
             logChannel.send({
                 embeds: [
                     new EmbedBuilder()
-                    .setTitle('🛍 Compra realizada')
+                    .setTitle('🛍 Compra realizada!')
                     .setAuthor({ name: ticketAuthor.user.username, iconURL: ticketAuthor.user.displayAvatarURL() })
                     .setFooter({ iconURL: interaction.guild.iconURL(), text: interaction.guild.name })
                     .setTimestamp(Date.now())
@@ -51,6 +51,15 @@ export default {
                         { name: '🛒 Carrinho', value: ticket.cart.map(p => `\`- ${p.amount}x ${p.name} (R$${(p.price * p.amount).toFixed(2)})\``).join('\n') || 'Nenhum produto adicionado.', inline: false },
                         { name: '💳 Valor pago', value: `\`R$${total.toFixed(2)}\``, inline: false }
                     ]), 
+                ],
+                components: [
+                    new ActionRowBuilder()
+                    .setComponents([
+                        new ButtonBuilder()
+                        .setLabel('Comprar!')
+                        .setStyle(ButtonStyle.Link)
+                        .setURL(`https://discord.com/channels/${interaction.guild.id}/${botConfig.channel.newCart}`)
+                    ])
                 ]
             });
 
