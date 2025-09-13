@@ -15,7 +15,7 @@ import { MongoClient, ServerApiVersion } from "mongodb";
 import client from "../src/Client.js";
 import "dotenv/config";
 
-const dbClient = new MongoClient(process.env.MONGODB_URI, {
+const mongoClient = new MongoClient(process.env.MONGODB_URI, {
   serverApi: {
     version: ServerApiVersion.v1,
     strict: true,

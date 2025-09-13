@@ -13,7 +13,7 @@ import client from "../src/Client.js";
 import { MongoClient, ServerApiVersion } from "mongodb";
 import "dotenv/config";
 
-const dbClient = new MongoClient(process.env.MONGODB_URI, {
+const mongoClient = new MongoClient(process.env.MONGODB_URI, {
   serverApi: {
     version: ServerApiVersion.v1,
     strict: true,
@@ -45,10 +45,10 @@ export default {
         });
 
         try {
-            await dbClient.connect();
+            await mongoClient.connect();
 
-            const categories = await dbClient.db().collection('product_categories').find().toArray();
-            const customEmbed = JSON.parse((await dbClient.db().collection('embeds').findOne({id: 'cart_starter'})).code);
+            const categories = await mongoClient.db().collection('product_categories').find().toArray();
+            const customEmbed = JSON.parse((await mongoClient.db().collection('embeds').findOne({id: 'cart_starter'})).code);
 
             await channel.send({
                 content: customEmbed['content'] || '',
@@ -93,7 +93,7 @@ export default {
             console.error(error);
             await interaction.editReply({content: `Ocorreu um erro na execução dessa ação. ${error.message}.`});
         } finally {
-            await dbClient.close();
+            await mongoClient.close();
         }
     }
 

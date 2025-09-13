@@ -7,7 +7,7 @@ import client from "../src/Client.js";
 import { MongoClient, ServerApiVersion } from "mongodb";
 import "dotenv/config";
 
-const dbClient = new MongoClient(process.env.MONGODB_URI, {
+const mongoClient = new MongoClient(process.env.MONGODB_URI, {
 	serverApi: {
 		version: ServerApiVersion.v1,
 		strict: true,
@@ -22,14 +22,14 @@ export default {
 	async execute(interaction) {
         
 		try {
-			await dbClient.connect();
+			await mongoClient.connect();
 
 			// Extrai os IDs dos produtos do customId do modal
 			const idsString = interaction.customId.split(":")[1];
 			const productIds = idsString.split(",");
 
 			// Busca os produtos no banco
-			const products = await dbClient.db().collection('products').find({
+			const products = await mongoClient.db().collection('products').find({
 				id: { $in: productIds }
 			}).toArray();
 
@@ -87,7 +87,7 @@ export default {
 			console.error(error);
 			await interaction.reply({content: `Ocorreu um erro na execução dessa ação. ${error.message}.`, flags: [MessageFlags.Ephemeral]});
 		} finally {
-			await dbClient.close();
+			await mongoClient.close();
 		}
 	}
 }

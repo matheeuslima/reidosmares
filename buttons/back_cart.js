@@ -8,7 +8,7 @@ import {
 import { MongoClient, ServerApiVersion } from "mongodb";
 import "dotenv/config";
 
-const dbClient = new MongoClient(process.env.MONGODB_URI, {
+const mongoClient = new MongoClient(process.env.MONGODB_URI, {
   serverApi: {
     version: ServerApiVersion.v1,
     strict: true,
@@ -23,10 +23,10 @@ export default {
      */
     async execute(interaction) {
         try {
-            await dbClient.connect();
+            await mongoClient.connect();
 
-            const categories = await dbClient.db().collection('product_categories').find().toArray();
-            const customEmbed = JSON.parse((await dbClient.db().collection('embeds').findOne({id: 'cart_starter'})).code);
+            const categories = await mongoClient.db().collection('product_categories').find().toArray();
+            const customEmbed = JSON.parse((await mongoClient.db().collection('embeds').findOne({id: 'cart_starter'})).code);
 
             interaction.message.editable && await interaction.message.edit({
                 components: [
@@ -55,7 +55,7 @@ export default {
             console.error(error);
             await interaction.reply({content: `Ocorreu um erro na execução dessa ação. ${error.message}.`});
         } finally {
-            await dbClient.close();
+            await mongoClient.close();
         }
     }
 

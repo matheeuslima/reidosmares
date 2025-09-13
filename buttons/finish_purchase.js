@@ -1,6 +1,16 @@
 import { ButtonInteraction, Colors, EmbedBuilder, MessageFlags } from "discord.js";
 import client from "../src/Client.js";
 import botConfig from "../config.json" with { type: "json" };
+import { MongoClient, ServerApiVersion } from "mongodb";
+import "dotenv/config";
+
+const mongoClient = new MongoClient(process.env.MONGODB_URI, {
+  serverApi: {
+    version: ServerApiVersion.v1,
+    strict: true,
+    deprecationErrors: true,
+  }
+});
 
 export default {
 	/**
@@ -16,6 +26,9 @@ export default {
         
         // Marca o ticket como pago
         ticket.paid = true;
+        ticket.id = interaction.channelId;
+        ticket.closedAt = new Date();
+        ticket.closedBy = interaction.user.id;
         client.tickets.set(interaction.channelId, ticket);
 
         await interaction.reply({ content: 'Compra marcada como paga com sucesso!', flags: [MessageFlags.Ephemeral] });
@@ -47,6 +60,26 @@ export default {
         await interaction.message.edit({
             components: []
         });
+
+        try {
+            await mongoClient.connect();
+            await mongoClient.db().collection('sales').insertOne(ticket);
+            await mongoClient.db().collection('users').updateOne({id: ticket.author}, {
+                $inc: { totalSpent: ticket.cart.reduce((acc, product) => acc + product.price*product.amount, 0) },
+                $set: { lastPurchase: new Date() },
+                $push: { purchaseHistory: {
+                    date: new Date(),
+                    items: ticket.cart,
+                    total: ticket.cart.reduce((acc, product) => acc + product.price*product.amount, 0),
+                    seller: ticket.seller
+                } }
+            }, { upsert: true });
+        } catch (error) {
+            console.error(error);
+            await interaction.channel.send(`Ocorreu um erro ao conectar no banco de dados. ${error.message}.`);
+        } finally {
+            await mongoClient.close();
+        }
 
         client.tickets.delete(interaction.channelId);
         
