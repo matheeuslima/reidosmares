@@ -35,7 +35,7 @@ export default {
 
             // verifica se o valor é um número válido
             if(isNaN(parseFloat(spendingThreshold)) || parseFloat(spendingThreshold) < 0) return await interaction.reply({content: `O valor de gastos "${spendingThreshold}" é inválido. Insira um número maior ou igual a 0.`, flags: [MessageFlags.Ephemeral]});
-            
+
             // insere no banco
             await client.db().collection("roles_by_spending").insertOne({
                 roleId,
@@ -43,7 +43,7 @@ export default {
             })
 
             await interaction.reply({
-                content: `Cargo <@&>${roleId}> adicionado com sucesso.`,
+                content: `Cargo <@${roleId}> adicionado aos cargos por gasto com sucesso.`,
                 embeds: [
                     new EmbedBuilder()
                     .setColor(Colors.Green)
