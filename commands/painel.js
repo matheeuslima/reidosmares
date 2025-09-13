@@ -50,10 +50,10 @@ export default {
                         .setDescription('Defina embeds!')
                         .setValue('define_embeds'),
                         new StringSelectMenuOptionBuilder()
-                        .setLabel('Definir canais')
-                        .setEmoji('💬')
-                        .setDescription('Defina os canais!')
-                        .setValue('define_channels')
+                        .setLabel('Definir cargos')
+                        .setEmoji('🔰')
+                        .setDescription('Defina os cargos dados por quantidade gasta!')
+                        .setValue('define_roles_by_spending'),
                     ])
                 ])
             ]

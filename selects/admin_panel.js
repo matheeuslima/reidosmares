@@ -55,12 +55,14 @@ export default {
                 };
 
                 case "manage_product_categories": {
+                    const categories = await client.db().collection('product_categories').find().toArray();
+
                     await interaction.message.edit({
                         embeds: [
                             new EmbedBuilder()
                             .setColor(Colors.Blurple)
                             .setTitle('Gerenciar categorias de produtos')
-                            .setDescription(`### Atuais categorias:\n- ${(await client.db().collection('product_categories').find().toArray()).map(category => `**${category.emoji} ${category.name} (${category.id}):** ${category.description}`).join('\n- ')}`)
+                            .setDescription(`### Atuais categorias:\n- ${categories.map(category => `**${category.emoji} ${category.name} (${category.id}):** ${category.description}`).join('\n- ') || 'Nenhuma categoria definida.'}`)
                         ],
                         components: [
                             new ActionRowBuilder()
@@ -69,11 +71,13 @@ export default {
                                 .setPlaceholder('Selecionar categoria pra editar...')
                                 .setCustomId('admin_panel_select_category')
                                 .setOptions(
-                                    (await client.db().collection('product_categories').find().toArray()).map(category => ({
+                                    categories.length>0 ? categories.map(category => ({
                                         label: category.name,
                                         description: `ID: ${category.id} | ${category.description}`,
                                         value: category.id
-                                    }))
+                                    })) : [
+                                        { label: 'Nenhuma categoria disponível', description: 'Adicione categorias para gerenciá-las aqui.', value: 'no_categories', default: true }
+                                    ]
                                 )
                                 .setMinValues(1)
                                 .setMaxValues(1),
@@ -106,7 +110,7 @@ export default {
                             new EmbedBuilder()
                             .setColor(Colors.Blurple)
                             .setTitle('Gerenciar produtos')
-                            .setDescription(`### Atuais produtos:\n- ${Array.from(categories).map(category => `**${category || 'Sem categoria'}**\n  - ${products.filter(product => product.category == category).map(product => `**${product.name} (${product.id}, R$${product.price.toFixed(2)})**: ${product.description}`).join('\n  - ')}`).join('\n- ')}`)
+                            .setDescription(`### Atuais produtos:\n- ${Array.from(categories).map(category => `**${category || 'Sem categoria'}**\n  - ${products.filter(product => product.category == category).map(product => `**${product.name} (${product.id}, R$${product.price.toFixed(2)})**: ${product.description}`).join('\n  - ')}`).join('\n- ') || 'Nenhum produto disponível.'}`)
                         ],
                         components: [
                             new ActionRowBuilder()
@@ -115,11 +119,13 @@ export default {
                                 .setPlaceholder('Selecionar produto pra editar...')
                                 .setCustomId('admin_panel_select_product')
                                 .setOptions(
-                                    products.map(product => ({
+                                    products.length>0 ? products.map(product => ({
                                         label: product.name,
                                         description: `ID: ${product.id} | R$${product.price.toFixed(2)} | ${product.hasStock ? 'Em estoque' : 'Sem estoque'}`,
                                         value: product.id
-                                    }))
+                                    })) : [
+                                        { label: 'Nenhum produto disponível', description: 'Adicione produtos para gerenciá-los aqui.', value: 'no_products', default: true }
+                                    ]
                                 )
                                 .setMinValues(1)
                                 .setMaxValues(1),
@@ -141,6 +147,35 @@ export default {
                     })
                     break;
                 };
+
+                case "define_roles_by_spending": {
+                    const roles = await client.db().collection('roles_by_spending').find().toArray();
+
+                    await interaction.message.edit({
+                        embeds: [
+                            new EmbedBuilder()
+                            .setColor(Colors.Blurple)
+                            .setTitle('Definir cargos por quantidade gasta')
+                            .setDescription(`### Cargos definidos:\n- ${roles.map(role => `**<@&${role.roleId}>:** R$${role.spendingThreshold.toFixed(2)}`).join('\n- ') || 'Nenhum cargo definido.'}`)
+                        ],
+                        components: [
+                            new ActionRowBuilder()
+                            .setComponents([
+                                new ButtonBuilder()
+                                .setCustomId('add_role_by_spending')
+                                .setEmoji('➕')
+                                .setLabel('Adicionar novo cargo')
+                                .setStyle(ButtonStyle.Success),
+                                new ButtonBuilder()
+                                .setCustomId('delete_role_by_spending')
+                                .setEmoji('🗑️')
+                                .setLabel('Excluir um cargo')
+                                .setStyle(ButtonStyle.Danger),
+                            ])
+                        ]
+                    })
+                    break;
+                }
 
                 default: {
                     break;

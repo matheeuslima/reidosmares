@@ -74,6 +74,25 @@ export default {
                     seller: ticket.seller
                 } }
             }, { upsert: true });
+
+            // verifica o novo total gasto da pessoa pra setar o cargo por gasto
+            const userData = await mongoClient.db().collection('users').findOne({id: ticket.author});
+            const rolesBySpending = await mongoClient.db().collection('roles_by_spending').find().toArray();
+            const member = interaction.guild.members.cache.get(ticket.author);
+
+            // filtra os cargos que o user tem direito
+            const eligibleRoles = rolesBySpending.filter(role => userData.totalSpent >= role.spendingThreshold);
+            if(eligibleRoles.length > 0) {
+                // pega o cargo com maior valor de gasto
+                const topRole = eligibleRoles.reduce((prev, current) => (prev.spendingThreshold > current.spendingThreshold) ? prev : current);
+                
+                if(!member.roles.cache.has(topRole.roleId)) { // se o user n tiver o cargo, add ele
+                    // remove os outros cargos de gasto que o user possa ter
+                    const rolesToRemove = rolesBySpending.map(r => r.roleId).filter(rId => member.roles.cache.has(rId) && rId !== topRole.roleId);
+                    await member.roles.remove(rolesToRemove, 'Atualização automática de cargo por quantidade gasta.');
+                    await member.roles.add(topRole.roleId, 'Atualização automática de cargo por quantidade gasta.');
+                }
+            }
         } catch (error) {
             console.error(error);
             await interaction.channel.send(`Ocorreu um erro ao conectar no banco de dados. ${error.message}.`);
