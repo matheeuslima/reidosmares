@@ -12,6 +12,8 @@ export default {
     async execute(message) {
         if (message.author.bot) return;
 
+        if(message.channelId === botConfig.channel.reviews) message.react('❤');
+
         if(client.tickets?.get(message.channelId)) {
             const ticket = client.tickets.get(message.channelId);
             if(!ticket) return;
