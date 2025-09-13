@@ -8,6 +8,7 @@ import {
     EmbedBuilder,
     MessageFlags,
     StringSelectMenuBuilder,
+    ThreadAutoArchiveDuration,
 } from "discord.js";
 import client from "../src/Client.js";
 import { MongoClient, ServerApiVersion } from "mongodb";
@@ -33,7 +34,7 @@ export default {
 
         const channel = await interaction.channel.threads.create({
             name: `Carrinho de ${interaction.user.username}`,
-            autoArchiveDuration: 60,
+            autoArchiveDuration: ThreadAutoArchiveDuration.OneWeek,
             type: ChannelType.PrivateThread,
             reason: `${interaction.user.username} abriu um carrinho`
         });
