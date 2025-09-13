@@ -41,10 +41,10 @@ export default {
                         .setPlaceholder('Selecionar produtos')
                         .setCustomId('cart_select_product')
                         .setMinValues(1)
-                        .setMaxValues(products.length)
+                        .setMaxValues(products.length>5 ? 5 : products.length)
                         .setOptions(products.map(product => {
                             return {
-                                label: `${product.name} (R$${product.price})`,
+                                label: `${product.name} (R$${product.price}) | ${product.hasStock ? 'Em estoque' : 'Não tem estoque'}`,
                                 value: product.id,
                                 emoji: product.emoji,
                                 description: product.description

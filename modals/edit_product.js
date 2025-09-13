@@ -1,9 +1,4 @@
-import {
-    Colors,
-    EmbedBuilder,
-    MessageFlags,
-    ModalSubmitInteraction,
-} from "discord.js";
+import { Colors, EmbedBuilder, MessageFlags, ModalSubmitInteraction } from "discord.js";
 import { MongoClient, ServerApiVersion } from "mongodb";
 import "dotenv/config";
 
@@ -23,31 +18,32 @@ export default {
     async execute(interaction) {
         try {
             await client.connect();
-
+            
             const productName = interaction.fields.getTextInputValue('product_name');
-            const productId = interaction.fields.getTextInputValue('product_id');
+            const productId = interaction.customId.split(':')[1];
+            const productCategory = interaction.fields.getTextInputValue('product_category');
             const productDescription = interaction.fields.getTextInputValue('product_description');
-            const productCategory  = interaction.fields.getTextInputValue('product_category');
             const productPrice = interaction.fields.getTextInputValue('product_price');
-
-            // limite de 25 produtos por categoria
-            if((await client.db().collection("products").countDocuments({category: productCategory})) >= 25) return await interaction.reply({content: `A categoria "${productCategory}" já atingiu o limite máximo de 25 produtos.`, flags: [MessageFlags.Ephemeral]});
+            const productStock = interaction.fields.getTextInputValue('product_stock').toLowerCase() === 'sim';
             
             // verifica se o ID do produto já existe
-            if(await client.db().collection("products").findOne({id: productId})) return await interaction.reply({content: `Já existe um produto com o ID "${productId}".`, flags: [MessageFlags.Ephemeral]});
+            const product = await client.db().collection("products").findOne({id: interaction.customId.split(':')[1]});
+            if(!product) return await interaction.reply({content: `Produto não encontrado no banco de dados.`, flags: [MessageFlags.Ephemeral]});
 
-            // insere no banco
-            await client.db().collection("products").insertOne({
-                name: productName,
-                id: productId,
-                category: productCategory,
-                description: productDescription,
-                price: parseFloat(productPrice),
-                hasStock: true
+            // atualiza no banco
+            await client.db().collection("products").updateOne({id: interaction.customId.split(':')[1]}, {
+                $set: {
+                    name: productName,
+                    id: productId,
+                    category: productCategory,
+                    description: productDescription,
+                    price: parseFloat(productPrice),
+                    hasStock: productStock
+                }
             })
 
             await interaction.reply({
-                content: `Produto "${productId}" adicionado com sucesso.`,
+                content: `Produto "${productId}" atualizado com sucesso.`,
                 embeds: [
                     new EmbedBuilder()
                     .setColor(Colors.Green)

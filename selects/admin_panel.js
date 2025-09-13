@@ -65,13 +65,30 @@ export default {
                         components: [
                             new ActionRowBuilder()
                             .setComponents([
+                                new StringSelectMenuBuilder()
+                                .setPlaceholder('Selecionar categoria pra editar...')
+                                .setCustomId('admin_panel_select_category')
+                                .setOptions(
+                                    (await client.db().collection('product_categories').find().toArray()).map(category => ({
+                                        label: category.name,
+                                        description: `ID: ${category.id} | ${category.description}`,
+                                        value: category.id
+                                    }))
+                                )
+                                .setMinValues(1)
+                                .setMaxValues(1),
+                            ]),
+                            new ActionRowBuilder()
+                            .setComponents([
                                 new ButtonBuilder()
                                 .setCustomId('add_product_category')
-                                .setLabel('Adicionar')
+                                .setEmoji('➕')
+                                .setLabel('Adicionar nova categoria')
                                 .setStyle(ButtonStyle.Success),
                                 new ButtonBuilder()
                                 .setCustomId('delete_product_category')
-                                .setLabel('Excluir')
+                                .setEmoji('🗑️')
+                                .setLabel('Excluir uma categoria')
                                 .setStyle(ButtonStyle.Danger),
                             ])
                         ]
@@ -94,13 +111,30 @@ export default {
                         components: [
                             new ActionRowBuilder()
                             .setComponents([
+                                new StringSelectMenuBuilder()
+                                .setPlaceholder('Selecionar produto pra editar...')
+                                .setCustomId('admin_panel_select_product')
+                                .setOptions(
+                                    products.map(product => ({
+                                        label: product.name,
+                                        description: `ID: ${product.id} | R$${product.price.toFixed(2)} | ${product.hasStock ? 'Em estoque' : 'Sem estoque'}`,
+                                        value: product.id
+                                    }))
+                                )
+                                .setMinValues(1)
+                                .setMaxValues(1),
+                            ]),
+                            new ActionRowBuilder()
+                            .setComponents([
                                 new ButtonBuilder()
                                 .setCustomId('add_product')
-                                .setLabel('Adicionar')
+                                .setEmoji('➕')
+                                .setLabel('Adicionar novo produto')
                                 .setStyle(ButtonStyle.Success),
                                 new ButtonBuilder()
                                 .setCustomId('delete_product')
-                                .setLabel('Excluir')
+                                .setEmoji('🗑️')
+                                .setLabel('Excluir um produto')
                                 .setStyle(ButtonStyle.Danger),
                             ])
                         ]
