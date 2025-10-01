@@ -20,7 +20,7 @@ export default {
 
     data: new SlashCommandBuilder()
     .setName("perfil")
-    .setDescription("Seu perfil na loja"),
+    .setDescription("Seu perfil na loja."),
 
     /**
      * @param {ChatInputCommandInteraction} interaction 
@@ -46,6 +46,11 @@ export default {
                         { name: `Total gasto`, value: `\`R$${user.totalSpent.toFixed(2)} (${user.purchaseHistory ? user.purchaseHistory.length : 0} compras)\`` },
                         { name: 'Última compra', value: user.lastPurchase ? `<t:${Math.floor(new Date(user.lastPurchase).getTime() / 1000)}:R>` : 'Nenhuma', inline: true },
                         { name: `Cliente desde`, value: user.purchaseHistory && user.purchaseHistory.length > 0 ? `<t:${Math.floor(new Date(user.purchaseHistory[0].date).getTime() / 1000)}:D>` : 'Nenhuma', inline: false },
+                        // se a pessoa for um vendedor exibir o numero de vendas e tbm o dinheiro gerado em vendas
+                        ...(user.isSeller ? [
+                            { name: 'Total em vendas', value: `\`R$${user.totalSales.toFixed(2)} (${user.salesHistory ? user.salesHistory.length : 0} vendas)\``, inline: true },
+                            { name: 'Última venda', value: user.lastSale ? `<t:${Math.floor(new Date(user.lastSale).getTime() / 1000)}:R>` : 'Nenhuma', inline: true },
+                        ] : [])
                     ])
                 ],
                 flags: [MessageFlags.Ephemeral]

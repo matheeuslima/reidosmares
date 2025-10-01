@@ -65,6 +65,16 @@ export default {
                         .setPlaceholder('Ex.: eletronicos')
                         .setRequired(true)
                         .setValue(category.id)
+                    ),
+                    new ActionRowBuilder()
+                    .setComponents(
+                        new TextInputBuilder()
+                        .setCustomId('category_store')
+                        .setLabel('Loja da Categoria')
+                        .setStyle(TextInputStyle.Short)
+                        .setPlaceholder('Ex.: loja1')
+                        .setRequired(true)
+                        .setValue(category.store || '')
                     )
                 ])
             )

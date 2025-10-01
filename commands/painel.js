@@ -45,6 +45,11 @@ export default {
                         .setDescription('Gerencie categorias de produtos!')
                         .setValue('manage_product_categories'),
                         new StringSelectMenuOptionBuilder()
+                        .setLabel('Gerenciar lojas')
+                        .setEmoji('🏬')
+                        .setDescription('Gerencie lojas!')
+                        .setValue('manage_stores'),
+                        new StringSelectMenuOptionBuilder()
                         .setLabel('Definir embeds')
                         .setEmoji('🤖')
                         .setDescription('Defina embeds!')

@@ -53,6 +53,15 @@ export default {
                         .setStyle(TextInputStyle.Paragraph)
                         .setPlaceholder(`Ex.: Qual tipo de produto você encontra aqui`)
                         .setRequired(true)
+                    ),
+                    new ActionRowBuilder()
+                    .addComponents(
+                        new TextInputBuilder()
+                        .setCustomId(`category_store`)
+                        .setLabel('Loja da Categoria')
+                        .setStyle(TextInputStyle.Paragraph)
+                        .setPlaceholder(`Ex.: loja1`)
+                        .setRequired(true)
                     )
                 )
             )

@@ -23,6 +23,7 @@ export default {
             const categoryId = interaction.fields.getTextInputValue('category_id');
             const categoryEmoji = interaction.fields.getTextInputValue('category_emoji');
             const categoryDescription = interaction.fields.getTextInputValue('category_description');
+            const categoryStore = interaction.fields.getTextInputValue('category_store');
             
             // verifica se o ID do produto já existe
             const category = await client.db().collection("product_categories").findOne({id: interaction.customId.split(':')[1]});
@@ -34,7 +35,8 @@ export default {
                     name: categoryName,
                     id: categoryId,
                     emoji: categoryEmoji,
-                    description: categoryDescription
+                    description: categoryDescription,
+                    store: categoryStore
                 }
             })
 

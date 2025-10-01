@@ -83,6 +83,17 @@ export default {
                     seller: ticket.seller
                 } }
             }, { upsert: true });
+            // perfil do vendedor
+            await mongoClient.db().collection('users').updateOne({id: ticket.seller}, {
+                $inc: { totalSales: ticket.cart.reduce((acc, product) => acc + product.price*product.amount, 0) },
+                $set: { lastSale: new Date(), isSeller: true },
+                $push: { salesHistory: {
+                    date: new Date(),
+                    items: ticket.cart,
+                    total: ticket.cart.reduce((acc, product) => acc + product.price*product.amount, 0),
+                    buyer: ticket.author
+                } }
+            }, { upsert: true });
 
             // verifica o novo total gasto da pessoa pra setar o cargo por gasto
             const userData = await mongoClient.db().collection('users').findOne({id: ticket.author});

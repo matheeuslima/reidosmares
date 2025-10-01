@@ -48,7 +48,7 @@ export default {
         try {
             await mongoClient.connect();
 
-            const categories = await mongoClient.db().collection('product_categories').find().toArray();
+            const stores = await mongoClient.db().collection('stores').find().toArray();
             const customEmbed = JSON.parse((await mongoClient.db().collection('embeds').findOne({id: 'cart_starter'})).code);
 
             await channel.send({
@@ -62,10 +62,10 @@ export default {
                     new ActionRowBuilder()
                     .setComponents([
                         new StringSelectMenuBuilder()
-                        .setPlaceholder('Selecione uma categoria!')
-                        .setCustomId('cart_select_category')
-                        .setOptions(categories.map(category => {
-                            return {label: category.name, value: category.id, emoji: category.emoji, description: category.description}
+                        .setPlaceholder('Selecione uma loja!')
+                        .setCustomId('cart_select_store')
+                        .setOptions(stores.map(store => {
+                            return {label: store.name, value: store.id, emoji: store.emoji}
                         }) || [{label: 'Não há produtos disponíveis', value: 'unavailable', emoji: '❔'}])
                     ]),
                     new ActionRowBuilder()
@@ -82,6 +82,7 @@ export default {
             const ticket = {
                 author: interaction.user.id,
                 seller: undefined,
+                store: undefined,
                 paid: false,
                 cart: []
             };
