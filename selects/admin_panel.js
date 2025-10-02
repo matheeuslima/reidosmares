@@ -231,7 +231,7 @@ export default {
             
         } catch (error) {
             console.error(error);
-            await interaction.reply({content: `Ocorreu um erro na execução dessa ação. ${error.message}.`, flags: [MessageFlags.Ephemeral]});
+            await interaction.channel.send({content: `Ocorreu um erro na execução dessa ação. ${error.message}.`, flags: [MessageFlags.Ephemeral]});
         } finally {
             await client.close();
         }
