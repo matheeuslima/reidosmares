@@ -26,7 +26,7 @@ export default {
 
             const productName = interaction.fields.getTextInputValue('product_name');
             const productId = interaction.fields.getTextInputValue('product_id');
-            const productDescription = interaction.fields.getTextInputValue('product_description');
+            const productEmoji = interaction.fields.getTextInputValue('product_emoji');
             const productCategory  = interaction.fields.getTextInputValue('product_category');
             const productPrice = interaction.fields.getTextInputValue('product_price');
 
@@ -41,9 +41,9 @@ export default {
                 name: productName,
                 id: productId,
                 category: productCategory,
-                description: productDescription,
+                emoji: productEmoji,
                 price: parseFloat(productPrice),
-                hasStock: true
+                stock: 0
             })
 
             await interaction.reply({
@@ -51,7 +51,7 @@ export default {
                 embeds: [
                     new EmbedBuilder()
                     .setColor(Colors.Green)
-                    .setDescription(`# ${productName}\n${productDescription}\n- Preço: R$${parseFloat(productPrice).toFixed(2)}\n- Categoria: ${productCategory}`)
+                    .setDescription(`# ${productEmoji} ${productName}\n- Preço: R$${parseFloat(productPrice).toFixed(2)}\n- Categoria: ${productCategory}`)
                 ],
                 flags: [MessageFlags.Ephemeral]
             });

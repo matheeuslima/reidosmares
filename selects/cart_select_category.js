@@ -44,10 +44,10 @@ export default {
                         .setMaxValues(products.length>5 ? 5 : products.length)
                         .setOptions(products.map(product => {
                             return {
-                                label: `${product.name} (R$${product.price}) | ${product.hasStock ? 'Em estoque' : 'Não tem estoque'}`,
+                                label: product.name,
                                 value: product.id,
                                 emoji: product.emoji,
-                                description: product.description
+                                description: `Preço: R$${product.price} | Estoque: ${product.stock}`
                             }
                         }) || [{label: 'Não há produtos disponíveis', value: 'unavailable', emoji: '❔'}])
                     ]),

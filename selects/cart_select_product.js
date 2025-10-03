@@ -49,7 +49,7 @@ export default {
                 .setStyle(TextInputStyle.Short)
                 .setMinLength(1)
                 .setMaxLength(3)
-                .setPlaceholder('1')
+                .setPlaceholder(`Máx.: ${product.stock}`)
                 .setValue('1')
                 .setRequired(true);
 

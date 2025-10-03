@@ -49,12 +49,12 @@ export default {
                     new ActionRowBuilder()
                     .setComponents(
                         new TextInputBuilder()
-                        .setCustomId('product_description')
-                        .setLabel('Descrição do Produto')
-                        .setStyle(TextInputStyle.Paragraph)
-                        .setPlaceholder('Descreva o produto para os clientes.')
+                        .setCustomId('product_emoji')
+                        .setLabel('Emoji do Produto')
+                        .setStyle(TextInputStyle.Short)
+                        .setPlaceholder('Ex.: 😁')
                         .setRequired(true)
-                        .setValue(product.description)
+                        .setValue(product.emoji)
                     ),
                     new ActionRowBuilder()
                     .setComponents(
@@ -70,11 +70,11 @@ export default {
                     .setComponents(
                         new TextInputBuilder()
                         .setCustomId('product_stock')
-                        .setLabel('Em estoque? ("sim" ou "não")')
+                        .setLabel('Estoque do Produto')
                         .setStyle(TextInputStyle.Short)
-                        .setPlaceholder('"sim" ou "não"')
+                        .setPlaceholder('Número inteiro de 0 ao infinito')
                         .setRequired(true)
-                        .setValue(product.hasStock ? 'sim' : 'não')
+                        .setValue(product.stock)
                     )
                 ])
             )

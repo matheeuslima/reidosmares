@@ -73,6 +73,11 @@ export default {
         try {
             await mongoClient.connect();
             await mongoClient.db().collection('sales').insertOne(ticket);
+            ticket.cart.forEach(product => {
+                mongoClient.db().collection('products').updateOne({id: product.id}, {
+                    $inc: { stock: product.amount*-1 }
+                });
+            })
             await mongoClient.db().collection('users').updateOne({id: ticket.author}, {
                 $inc: { totalSpent: ticket.cart.reduce((acc, product) => acc + product.price*product.amount, 0) },
                 $set: { lastPurchase: new Date() },

@@ -111,7 +111,7 @@ export default {
                             new EmbedBuilder()
                             .setColor(Colors.Blurple)
                             .setTitle('Gerenciar produtos')
-                            .setDescription(`### Atuais produtos:\n- ${Array.from(categories).map(category => `**${category || 'Sem categoria'}**\n  - ${products.filter(product => product.category == category).map(product => `**${product.name} (${product.id}, R$${product.price.toFixed(2)})**: ${product.description}`).join('\n  - ')}`).join('\n- ') || 'Nenhum produto disponível.'}`)
+                            .setDescription(`### Atuais produtos:\n- ${Array.from(categories).map(category => `**${category || 'Sem categoria'}**\n  - ${products.filter(product => product.category == category).map(product => `**${product.emoji} ${product.name}** (\`${product.id}\`): R$${product.price.toFixed(2)}`).join('\n  - ')}`).join('\n- ') || 'Nenhum produto disponível.'}`)
                         ],
                         components: [
                             new ActionRowBuilder()
@@ -122,8 +122,9 @@ export default {
                                 .setOptions(
                                     products.length>0 ? products.map(product => ({
                                         label: product.name,
-                                        description: `ID: ${product.id} | R$${product.price.toFixed(2)} | ${product.hasStock ? 'Em estoque' : 'Sem estoque'}`,
-                                        value: product.id
+                                        description: `ID: ${product.id} | R$${product.price.toFixed(2)} | Estoque: ${product.stock}`,
+                                        value: product.id,
+                                        emoji: product.emoji
                                     })) : [
                                         { label: 'Nenhum produto disponível', description: 'Adicione produtos para gerenciá-los aqui.', value: 'no_products', default: true }
                                     ]

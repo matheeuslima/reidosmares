@@ -22,9 +22,9 @@ export default {
             const productName = interaction.fields.getTextInputValue('product_name');
             const productId = interaction.customId.split(':')[1];
             const productCategory = interaction.fields.getTextInputValue('product_category');
-            const productDescription = interaction.fields.getTextInputValue('product_description');
+            const productEmoji = interaction.fields.getTextInputValue('product_emoji');
             const productPrice = interaction.fields.getTextInputValue('product_price');
-            const productStock = interaction.fields.getTextInputValue('product_stock').toLowerCase() === 'sim';
+            const productStock = interaction.fields.getTextInputValue('product_stock');
             
             // verifica se o ID do produto já existe
             const product = await client.db().collection("products").findOne({id: interaction.customId.split(':')[1]});
@@ -36,9 +36,9 @@ export default {
                     name: productName,
                     id: productId,
                     category: productCategory,
-                    description: productDescription,
+                    emoji: productEmoji,
                     price: parseFloat(productPrice),
-                    hasStock: productStock
+                    stock: parseInt(productStock),
                 }
             })
 
@@ -47,7 +47,7 @@ export default {
                 embeds: [
                     new EmbedBuilder()
                     .setColor(Colors.Green)
-                    .setDescription(`# ${productName}\n${productDescription}\n- Preço: R$${parseFloat(productPrice).toFixed(2)}\n- Categoria: ${productCategory}`)
+                    .setDescription(`# ${productEmoji} ${productName}\n- Preço: R$${parseFloat(productPrice).toFixed(2)}\n- Categoria: ${productCategory}`)
                 ],
                 flags: [MessageFlags.Ephemeral]
             });

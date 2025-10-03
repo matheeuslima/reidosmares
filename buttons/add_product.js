@@ -60,10 +60,10 @@ export default {
                     new ActionRowBuilder()
                     .addComponents(
                         new TextInputBuilder()
-                        .setCustomId(`product_description`)
-                        .setLabel('Descrição do Produto')
-                        .setStyle(TextInputStyle.Paragraph)
-                        .setPlaceholder(`Ex.: O que esse produto faz`)
+                        .setCustomId(`product_emoji`)
+                        .setLabel('Emoji do Produto')
+                        .setStyle(TextInputStyle.Short)
+                        .setPlaceholder(`Ex.: 😁`)
                         .setRequired(true)
                     ),
                     new ActionRowBuilder()
@@ -74,7 +74,7 @@ export default {
                         .setStyle(TextInputStyle.Short)
                         .setPlaceholder(`Ex.: 7.00 (apenas número com . para separar centavos se necessário)`)
                         .setRequired(true)
-                    )
+                    ),
                 )
             )
             
