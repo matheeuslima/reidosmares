@@ -45,7 +45,7 @@ export default {
                         .setOptions(products.map(product => {
                             return {
                                 label: product.name,
-                                value: product.id,
+                                value: product.stock ? product.id : `${product.id}-unavailable`,
                                 emoji: product.emoji,
                                 description: `Preço: R$${product.price} | Estoque: ${product.stock || 'Sem estoque'}`
                             }

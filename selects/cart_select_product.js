@@ -37,12 +37,13 @@ export default {
 
             if(ticket.cart.length + products.length > 25) return await interaction.reply({ content: 'Você atingiu o limite máximo de 25 produtos no carrinho.', flags: [MessageFlags.Ephemeral] });
             if(ticket.cart.find(p => products.map(pr => pr.id).includes(p.id))) return await interaction.reply({ content: 'Você já adicionou um ou mais desses produtos ao carrinho.', flags: [MessageFlags.Ephemeral] });
+            if(products.filter(p => p.stock).length==0)  return await interaction.reply({ content: 'O estoque deste(s) produto(s) esgotou.', flags: [MessageFlags.Ephemeral] });
 
             const modal = new ModalBuilder()
-            .setCustomId(`cart_set_product_amount:${products.map(p => p.id).join(",")}`)
+            .setCustomId(`cart_set_product_amount:${products.filter(p => p.stock).map(p => p.id).join(",")}`)
             .setTitle('Defina a quantidade de cada produto');
 
-            products.forEach(product => {
+            products.filter(p => p.stock).forEach(product => {
                 const input = new TextInputBuilder()
                 .setCustomId(`amount_${product.id}`)
                 .setLabel(`Quantidade de ${product.name}`)
