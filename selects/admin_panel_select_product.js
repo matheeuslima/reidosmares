@@ -74,7 +74,7 @@ export default {
                         .setStyle(TextInputStyle.Short)
                         .setPlaceholder('Número inteiro de 0 ao infinito')
                         .setRequired(true)
-                        .setValue(product.stock)
+                        .setValue(`${product.stock}`)
                     )
                 ])
             )

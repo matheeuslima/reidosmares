@@ -47,7 +47,7 @@ export default {
                                 label: product.name,
                                 value: product.id,
                                 emoji: product.emoji,
-                                description: `Preço: R$${product.price} | Estoque: ${product.stock}`
+                                description: `Preço: R$${product.price} | Estoque: ${product.stock || 'Sem estoque'}`
                             }
                         }) || [{label: 'Não há produtos disponíveis', value: 'unavailable', emoji: '❔'}])
                     ]),

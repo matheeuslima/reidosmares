@@ -122,7 +122,7 @@ export default {
                                 .setOptions(
                                     products.length>0 ? products.map(product => ({
                                         label: product.name,
-                                        description: `ID: ${product.id} | R$${product.price.toFixed(2)} | Estoque: ${product.stock}`,
+                                        description: `ID: ${product.id} | R$${product.price.toFixed(2)} | Estoque: ${product.stock || 'Sem estoque'}`,
                                         value: product.id,
                                         emoji: product.emoji
                                     })) : [

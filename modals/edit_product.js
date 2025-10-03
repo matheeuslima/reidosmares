@@ -47,7 +47,7 @@ export default {
                 embeds: [
                     new EmbedBuilder()
                     .setColor(Colors.Green)
-                    .setDescription(`# ${productEmoji} ${productName}\n- Preço: R$${parseFloat(productPrice).toFixed(2)}\n- Categoria: ${productCategory}`)
+                    .setDescription(`# ${productEmoji} ${productName}\n- Preço: R$${parseFloat(productPrice).toFixed(2)}\n- Categoria: ${productCategory}\n- Estoque: ${productStock || 'Sem estoque'}`)
                 ],
                 flags: [MessageFlags.Ephemeral]
             });
