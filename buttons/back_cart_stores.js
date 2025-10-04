@@ -7,7 +7,6 @@ import {
 } from "discord.js";
 import { MongoClient, ServerApiVersion } from "mongodb";
 import "dotenv/config";
-import client from "../src/Client.js";
 
 const mongoClient = new MongoClient(process.env.MONGODB_URI, {
   serverApi: {
@@ -26,7 +25,7 @@ export default {
         try {
             await mongoClient.connect();
 
-            const categories = await mongoClient.db().collection('product_categories').find({ store: client.tickets.get(interaction.channelId).store }).toArray();
+            const stores = await mongoClient.db().collection('stores').find().toArray();
             const customEmbed = JSON.parse((await mongoClient.db().collection('embeds').findOne({id: 'cart_starter'})).code);
 
             interaction.message.editable && await interaction.message.edit({
@@ -34,19 +33,19 @@ export default {
                     new ActionRowBuilder()
                     .setComponents([
                         new StringSelectMenuBuilder()
-                        .setPlaceholder('Selecione uma categoria!')
-                        .setCustomId('cart_select_category')
-                        .setOptions(categories.map(category => {
-                            return {label: category.name, value: category.id, emoji: category.emoji, description: category.description}
+                        .setPlaceholder('Selecione uma loja!')
+                        .setCustomId('cart_select_store')
+                        .setOptions(stores.map(store => {
+                            return {label: store.name, value: store.id, emoji: store.emoji}
                         }) || [{label: 'Não há produtos disponíveis', value: 'unavailable', emoji: '❔'}])
                     ]),
                     new ActionRowBuilder()
                     .setComponents([
                         new ButtonBuilder()
-                        .setLabel('Voltar')
-                        .setEmoji('⬅️')
-                        .setCustomId('back_cart_stores')
-                        .setStyle(ButtonStyle.Secondary),
+                        .setLabel('Fechar carrinho')
+                        .setCustomId('close_cart')
+                        .setEmoji('🚮')
+                        .setStyle(ButtonStyle.Danger)
                     ])
                 ]
             });
@@ -54,7 +53,7 @@ export default {
             await interaction.deferReply().then(reply => reply.delete());
         } catch (error) {
             console.error(error);
-            await interaction.reply({content: `Ocorreu um erro na execução dessa ação. ${error.message}.`});
+            await interaction.channel.send({content: `Ocorreu um erro na execução dessa ação. ${error.message}.`});
         } finally {
             await mongoClient.close();
         }

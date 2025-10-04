@@ -3,7 +3,9 @@ import {
     MessageFlags,
     ActionRowBuilder,
     StringSelectMenuBuilder,
-    EmbedBuilder
+    EmbedBuilder,
+    ButtonBuilder,
+    ButtonStyle
 } from "discord.js";
 import client from "../src/Client.js";
 import { MongoClient, ServerApiVersion } from "mongodb";
@@ -50,7 +52,17 @@ export default {
                 })));
 
             interaction.message.editable && await interaction.message.edit({
-                components: [new ActionRowBuilder().addComponents(select)]
+                components: [
+                    new ActionRowBuilder().addComponents(select),
+                    new ActionRowBuilder()
+                    .setComponents([
+                        new ButtonBuilder()
+                        .setLabel('Voltar')
+                        .setEmoji('⬅️')
+                        .setCustomId('back_cart_stores')
+                        .setStyle(ButtonStyle.Secondary),
+                    ])
+                ]
             });
         } catch (error) {
             console.error(error);
