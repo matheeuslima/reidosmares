@@ -106,13 +106,20 @@ export default {
                     const products = await client.db().collection('products').find().toArray();
                     const categories = new Set(products.map(product => product.category));
 
-                    await interaction.message.edit({
-                        embeds: [
+                    const description = `### Atuais produtos:\n- ${Array.from(categories).map(category => `**${category || 'Sem categoria'}**\n  - ${products.filter(product => product.category == category).map(product => `**${product.emoji} ${product.name}** (\`${product.id}\`): R$${product.price.toFixed(2)}`).join('\n  - ')}`).join('\n- ') || 'Nenhum produto disponível.'}`;
+                    let embeds = [];
+
+                    for (let i = 0; i < description.length/2000; i++) {
+                        embeds.push(
                             new EmbedBuilder()
                             .setColor(Colors.Blurple)
                             .setTitle('Gerenciar produtos')
-                            .setDescription(`### Atuais produtos:\n- ${Array.from(categories).map(category => `**${category || 'Sem categoria'}**\n  - ${products.filter(product => product.category == category).map(product => `**${product.emoji} ${product.name}** (\`${product.id}\`): R$${product.price.toFixed(2)}`).join('\n  - ')}`).join('\n- ') || 'Nenhum produto disponível.'}`)
-                        ],
+                            .setDescription(description.slice(i*2000, (i+1)*2000))
+                        )
+                    }
+
+                    await interaction.message.edit({
+                        embeds: embeds,
                         components: [
                             new ActionRowBuilder()
                             .setComponents([
@@ -125,12 +132,24 @@ export default {
                                         description: `ID: ${product.id} | R$${product.price.toFixed(2)} | Estoque: ${product.stock || 'Sem estoque'}`,
                                         value: product.id,
                                         emoji: product.emoji
-                                    })) : [
+                                    })).slice(0, 25) : [
                                         { label: 'Nenhum produto disponível', description: 'Adicione produtos para gerenciá-los aqui.', value: 'no_products', default: true }
                                     ]
                                 )
                                 .setMinValues(1)
                                 .setMaxValues(1),
+                            ]),
+                            products.length > 25 && new ActionRowBuilder()
+                            .setComponents([
+                                new ButtonBuilder()
+                                .setCustomId(`page_previous:admin_panel_products:0`)
+                                .setEmoji('⬅️')
+                                .setStyle(ButtonStyle.Primary)
+                                .setDisabled(true),
+                                new ButtonBuilder()
+                                .setCustomId('page_next:admin_panel_products:0')
+                                .setEmoji('➡️')
+                                .setStyle(ButtonStyle.Primary),
                             ]),
                             new ActionRowBuilder()
                             .setComponents([

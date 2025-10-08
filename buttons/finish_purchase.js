@@ -127,7 +127,6 @@ export default {
 
         client.tickets.delete(interaction.channelId);
         
-        await interaction.channel.send(`Compra finalizada e ticket arquivado. Obrigado pela preferência, volte sempre!`);
-        await interaction.channel.setArchived(true, 'Compra finalizada e ticket arquivado.');
+        interaction.channel.deletable && await interaction.channel.delete('Compra finalizada e ticket arquivado.');
     }
 }
