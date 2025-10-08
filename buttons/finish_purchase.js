@@ -118,15 +118,15 @@ export default {
                     await member.roles.add(topRole.roleId, 'Atualização automática de cargo por quantidade gasta.');
                 }
             }
+
+            client.tickets.delete(interaction.channelId);
+        
+            await interaction.channel.delete('Compra finalizada e ticket arquivado.');
         } catch (error) {
             console.error(error);
             await interaction.channel.send(`Ocorreu um erro ao conectar no banco de dados. ${error.message}.`);
         } finally {
             await mongoClient.close();
         }
-
-        client.tickets.delete(interaction.channelId);
-        
-        interaction.channel.deletable && await interaction.channel.delete('Compra finalizada e ticket arquivado.');
     }
 }
