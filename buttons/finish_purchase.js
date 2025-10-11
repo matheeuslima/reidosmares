@@ -122,6 +122,16 @@ export default {
             client.tickets.delete(interaction.channelId);
         
             await interaction.channel.delete('Compra finalizada e ticket arquivado.');
+
+            // review
+            await interaction.guild.channels.cache.get(botConfig.channel.reviews)
+            .send(`# <@${ticket.author}>\nParabéns pela sua compra! Avalie a loja e o atendimento aqui.\n-# Essa mensagem expira <t:${Math.floor(Date.now() / 1000) + 10}:R>.`)
+            .then(msg => {
+                setTimeout(() => {
+                    msg?.deletable && msg?.delete();
+                }, 10_000);
+            });
+
         } catch (error) {
             console.error(error);
             await interaction.channel.send(`Ocorreu um erro ao conectar no banco de dados. ${error.message}.`);
