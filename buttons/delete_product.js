@@ -40,7 +40,7 @@ export default {
                         .setCustomId(`product_id`)
                         .setLabel('ID do Produto')
                         .setStyle(TextInputStyle.Short)
-                        .setPlaceholder(`Um dos seguintes: ${products.map(product => product.id).join(', ')}`)
+                        .setPlaceholder(`id_do_produto`)
                         .setRequired(true)
                     )
                 )
