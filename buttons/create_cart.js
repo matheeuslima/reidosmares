@@ -11,6 +11,7 @@ import {
     ThreadAutoArchiveDuration,
 } from "discord.js";
 import client from "../src/Client.js";
+import botConfig from "../config.json" with { type: "json" };
 import { MongoClient, ServerApiVersion } from "mongodb";
 import "dotenv/config";
 
@@ -56,7 +57,7 @@ export default {
                 embeds: [
                     customEmbed['embed'] ||
                     new EmbedBuilder()
-                    .setDescription(`Carrinho de ${interaction.user.username}`)
+                    .setDescription(`${interaction.member.roles.cache.has(botConfig.role.booster) ? "🚀 " : ""}Carrinho de ${interaction.user.username}`)
                 ],
                 components: [
                     new ActionRowBuilder()
