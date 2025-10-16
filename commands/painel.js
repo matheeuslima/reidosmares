@@ -9,6 +9,7 @@ import {
     StringSelectMenuBuilder,
     StringSelectMenuOptionBuilder
 } from "discord.js";
+import botConfig from "../config.json" with { type: "json" };
 
 export default {
 
@@ -20,6 +21,8 @@ export default {
      * @param {ChatInputCommandInteraction} interaction 
      */
     async execute(interaction) {
+        if(!interaction.member.roles.cache.has(botConfig.role.owner) && !botConfig.owners.includes(interaction.user.id)) return await interaction.editReply({content: "Sem permissão."});
+        
         await interaction.editReply({
             embeds: [
                 new EmbedBuilder()
