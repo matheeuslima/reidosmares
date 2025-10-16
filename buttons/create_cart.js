@@ -34,7 +34,7 @@ export default {
         if(client.tickets?.find(t => t.author === interaction.user.id)) return await interaction.editReply({content: 'Você já possui um carrinho aberto!'});
 
         const channel = await interaction.channel.threads.create({
-            name: `Carrinho de ${interaction.user.username}`,
+            name: `${interaction.member.roles.cache.has(botConfig.role.booster) ? "🚀 " : ""}Carrinho de ${interaction.user.username}`,
             autoArchiveDuration: ThreadAutoArchiveDuration.OneWeek,
             type: ChannelType.PrivateThread,
             reason: `${interaction.user.username} abriu um carrinho`
@@ -57,7 +57,7 @@ export default {
                 embeds: [
                     customEmbed['embed'] ||
                     new EmbedBuilder()
-                    .setDescription(`${interaction.member.roles.cache.has(botConfig.role.booster) ? "🚀 " : ""}Carrinho de ${interaction.user.username}`)
+                    .setDescription(`Carrinho de ${interaction.user.username}`)
                 ],
                 components: [
                     new ActionRowBuilder()
