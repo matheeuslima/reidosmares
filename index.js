@@ -5,6 +5,15 @@ import botConfig from "./config.json" with { type: "json" };
 import client from "./src/Client.js";
 import cron from "node-cron";
 import "dotenv/config";
+import { MongoClient, ServerApiVersion } from "mongodb";
+
+const mongoClient = new MongoClient(process.env.MONGODB_URI, {
+  serverApi: {
+    version: ServerApiVersion.v1,
+    strict: true,
+    deprecationErrors: true,
+  }
+});
 
 // Simular __dirname e __filename no ES module
 const __filename = fileURLToPath(import.meta.url);
@@ -55,10 +64,21 @@ process.on('unhandledRejection', async (reason, promise) => {
 });
 
 // Desligamento
-process.on('exit', async () => {
-    console.log('oi');
+process.on('exit', () => {
+    console.log('\nDesligando...');
 });
-process.on('SIGINT', () => {process.exit()});
+process.on('SIGINT', async () => {
+    await mongoClient.connect();
+    await mongoClient.db().collection('tickets').findOneAndUpdate(
+        { id: "tickets" },
+        { $set: { id: "tickets", value: client.tickets } },
+        { returnDocument: 'after', sort: { createdAt: 1 }, upsert: true }
+    );
+    console.log('Todos os tickets abertos foram guardados.');
+    console.log(await mongoClient.db().collection('tickets').findOne({id: "tickets"}));
+    await mongoClient.close();
+    process.exit()
+});
 
 // Logar o cliente
 client.login(process.env.DISCORD_BOT_TOKEN);

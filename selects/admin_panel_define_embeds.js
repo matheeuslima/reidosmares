@@ -8,7 +8,7 @@ import {
 } from "discord.js";
 import { MongoClient, ServerApiVersion } from "mongodb";
 import "dotenv/config";
-import client from "../src/Client";
+import client from "../src/Client.js";
 
 const mongoClient = new MongoClient(process.env.MONGODB_URI, {
   serverApi: {

@@ -28,12 +28,22 @@ export default {
             const categoryId = interaction.fields.getTextInputValue('category_id');
             const categoryEmoji = interaction.fields.getTextInputValue('category_emoji');
             const categoryDescription = interaction.fields.getTextInputValue('category_description');
+            const categoryStore = interaction.fields.getTextInputValue('category_store');
 
+            const existingCategory = await client.db().collection('product_categories').findOne({ id: categoryId });
+            if(existingCategory) return interaction.reply({content: `Já existe uma categoria com o ID "${categoryId}".`, flags: [MessageFlags.Ephemeral]});
+
+            // verificar se a loja existe
+            const store = await client.db().collection('stores').findOne({ id: categoryStore });
+            if(!store) return interaction.reply({content: `A loja com o ID "${categoryStore}" não existe.`, flags: [MessageFlags.Ephemeral]});
+
+            // criar a categoria
             await client.db().collection("product_categories").insertOne({
                 name: categoryName,
                 id: categoryId,
                 emoji: categoryEmoji,
-                description: categoryDescription
+                description: categoryDescription,
+                store: categoryStore,
             })
 
             await interaction.reply({
@@ -42,6 +52,7 @@ export default {
                     new EmbedBuilder()
                     .setColor(Colors.Green)
                     .setDescription(`# ${categoryEmoji} ${categoryName}\n${categoryDescription}`)
+                    .setAuthor({name: store})
                 ],
                 flags: [MessageFlags.Ephemeral]
             });
