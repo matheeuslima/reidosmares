@@ -50,10 +50,15 @@ for (const file of timedFiles) {
 process.on('uncaughtException', async (err, origin) => {
     console.error(`Exceção não capturada.`, err, origin);
 });
-
 process.on('unhandledRejection', async (reason, promise) => {
     console.error(`Rejeição não manuseada.`, reason, promise);
 });
+
+// Desligamento
+process.on('exit', async () => {
+    console.log('oi');
+});
+process.on('SIGINT', () => {process.exit()});
 
 // Logar o cliente
 client.login(process.env.DISCORD_BOT_TOKEN);

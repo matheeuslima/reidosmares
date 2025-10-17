@@ -54,7 +54,12 @@ export default {
                                 .setLabel('Abrir carrinho!')
                                 .setEmoji('🛒')
                                 .setStyle(ButtonStyle.Primary)
-                                .setCustomId('create_cart')
+                                .setCustomId('create_cart'),
+                                new ButtonBuilder()
+                                .setLabel('Ver estoque')
+                                .setEmoji('📦')
+                                .setStyle(ButtonStyle.Secondary)
+                                .setCustomId('view_stock'),
                             ])
                         ]
                     })
