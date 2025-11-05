@@ -29,6 +29,7 @@ export default {
         ticket.id = interaction.channelId;
         ticket.closedAt = new Date();
         ticket.closedBy = interaction.user.id;
+        ticket.seller = interaction.user.id;
         client.tickets.set(interaction.channelId, ticket);
 
         await interaction.reply({ content: 'Compra marcada como paga com sucesso!', flags: [MessageFlags.Ephemeral] });

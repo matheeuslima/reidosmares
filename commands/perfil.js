@@ -46,6 +46,43 @@ export default {
             
             //if(userRank === 0) return interaction.editReply({content: `Você ainda não fez nenhuma compra.`, flags: [MessageFlags.Ephemeral]});
 
+            // Calcula rendimentos: mês atual, últimos 7 dias (mantido) e hoje (00:00 - 23:59)
+            // Força timezone sem usar libs: usa horas de offset fixo (em horas) definido em env FORCE_TZ_OFFSET_HOURS (ex: -3 para America/Sao_Paulo)
+            const tzOffsetHours = -3;
+            const toTzDate = (date) => {
+                const d = new Date(date);
+                const utc = d.getTime() + d.getTimezoneOffset() * 60000;
+                return new Date(utc + tzOffsetHours * 3600000);
+            };
+
+            let monthTotal = 0;
+            let weekTotal = 0;
+            let todayTotal = 0;
+            if (user?.salesHistory && Array.isArray(user.salesHistory)) {
+                const nowTz = toTzDate(new Date());
+
+                monthTotal = user.salesHistory
+                    .map(s => ({ d: toTzDate(s.date), total: Number(s.total) || 0 }))
+                    .filter(item => item.d.getMonth() === nowTz.getMonth() && item.d.getFullYear() === nowTz.getFullYear())
+                    .reduce((acc, item) => acc + item.total, 0);
+
+                const weekCutoff = new Date(nowTz.getTime() - 7 * 24 * 60 * 60 * 1000);
+                weekTotal = user.salesHistory
+                    .map(s => ({ d: toTzDate(s.date), total: Number(s.total) || 0 }))
+                    .filter(item => item.d > weekCutoff)
+                    .reduce((acc, item) => acc + item.total, 0);
+
+                const startOfDay = new Date(nowTz);
+                startOfDay.setHours(0,0,0,0);
+                const endOfDay = new Date(nowTz);
+                endOfDay.setHours(23,59,59,999);
+
+                todayTotal = user.salesHistory
+                    .map(s => ({ d: toTzDate(s.date), total: Number(s.total) || 0 }))
+                    .filter(item => item.d >= startOfDay && item.d <= endOfDay)
+                    .reduce((acc, item) => acc + item.total, 0);
+            }
+
             await interaction.editReply({
                 embeds: [
                     new EmbedBuilder()
@@ -65,7 +102,7 @@ export default {
                             interaction.member.permissions.has(PermissionsBitField.Flags.Administrator) ? [
                                 { name: 'Total em vendas', value: `\`R$${user.totalSales.toFixed(2)} (${user.salesHistory ? user.salesHistory.length : 0} vendas)\``, inline: true },
                                 { name: 'Última venda', value: user.lastSale ? `<t:${Math.floor(new Date(user.lastSale).getTime() / 1000)}:R>` : 'Nenhuma', inline: true },
-                                { name: 'Rendimento', value: `\`Último mês: R$${user.salesHistory ? user.salesHistory.filter(sale => new Date(sale.date) > new Date(Date.now() - 30*24*60*60*1000)).reduce((acc, sale) => acc + sale.total, 0).toFixed(2) : '0.00'}\nÚltima semana: R$${user.salesHistory ? user.salesHistory.filter(sale => new Date(sale.date) > new Date(Date.now() - 7*24*60*60*1000)).reduce((acc, sale) => acc + sale.total, 0).toFixed(2) : '0.00'}\nÚltimas 24h: R$${user.salesHistory ? user.salesHistory.filter(sale => new Date(sale.date) > new Date(Date.now() - 24*60*60*1000)).reduce((acc, sale) => acc + sale.total, 0).toFixed(2) : '0.00'}\``, inline: false }
+                                { name: 'Rendimento', value: `\`Mês atual: R$${monthTotal.toFixed(2)}\nÚltima semana: R$${weekTotal.toFixed(2)}\nHoje: R$${todayTotal.toFixed(2)}\``, inline: false }
                             ] : [
                                 { name: 'Usuário é um vendedor', value: 'Esse usuário é um vendedor, mas você não tem permissão para ver os dados de vendas dele.', inline: false }
                             ]
