@@ -5,7 +5,8 @@ import {
     Colors,
 	ActionRowBuilder,
 	ButtonBuilder,
-	ButtonStyle
+	ButtonStyle,
+	MessageFlags
 } from "discord.js";
 import client from "../src/Client.js";
 import "dotenv/config";
@@ -16,13 +17,13 @@ export default {
 	 */
 	async execute(interaction) {
 		const ticket = client.tickets.get(interaction.channelId);
-		if (!ticket || !ticket.cart || ticket.cart.length === 0) return await interaction.editReply({content: 'Seu carrinho está vazio ou não foi encontrado.'});
+		if (!ticket || !ticket.cart || ticket.cart.length === 0) return await interaction.reply({content: 'Seu carrinho está vazio ou não foi encontrado.', flags: [MessageFlags.Ephemeral]});
 
 		// Calcular valor total
 		const total = ticket.cart.reduce((acc, product) => acc + product.price*product.amount, 0);
-		if (total <= 0) return await interaction.editReply({content: 'O valor do carrinho é inválido.'});
-		if (total < 1.00) return await interaction.editReply({content: 'O valor mínimo para concluir a compra é R$1.00.'});
-		
+		if (total <= 0) return await interaction.reply({content: 'O valor do carrinho é inválido.', flags: [MessageFlags.Ephemeral]});
+		if (total < 1.00) return await interaction.reply({content: 'O valor mínimo para concluir a compra é R$1.00.', flags: [MessageFlags.Ephemeral] });
+
         await interaction.reply({
             content: `-# <@&1339004186129338501> <@${interaction.user.id}>`,
             embeds: [
