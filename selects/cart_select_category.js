@@ -47,7 +47,7 @@ export default {
                                 label: product.name,
                                 value: product.stock ? product.id : `${product.id}-unavailable`,
                                 emoji: product.emoji,
-                                description: `Preço: R$${product.price} | Estoque: ${product.stock || 'Sem estoque'}`
+                                description: `Preço: R$${product.price} | Estoque: ${product.stock >= 1_000_000 ? '∞' : (product.stock || 'Sem estoque')}`
                             }
                         }) || [{label: 'Não há produtos disponíveis', value: 'unavailable', emoji: '❔'}])
                     ]),

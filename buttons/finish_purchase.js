@@ -24,6 +24,9 @@ export default {
         if (!interaction.member?.roles?.cache?.has(botConfig.role.owner) && !botConfig.owners.includes(interaction.user.id)) return await interaction.reply({ content: 'Somente os vendedores podem clicar nesse botão.', flags: [MessageFlags.Ephemeral] });
         if (ticket.paid) return await interaction.reply({ content: 'Esta compra já foi marcada como paga.', flags: [MessageFlags.Ephemeral] });
         
+        const cartTotal = ticket.cart.reduce((acc, product) => acc + product.price * product.amount, 0);
+        if (cartTotal < 1.00) return await interaction.reply({ content: 'O valor mínimo para concluir a compra é R$1.00.', flags: [MessageFlags.Ephemeral] });
+
         // Marca o ticket como pago
         ticket.paid = true;
         ticket.id = interaction.channelId;

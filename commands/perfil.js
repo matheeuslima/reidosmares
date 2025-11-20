@@ -58,6 +58,8 @@ export default {
             let monthTotal = 0;
             let weekTotal = 0;
             let todayTotal = 0;
+            let yesterdayTotal = 0;
+
             if (user?.salesHistory && Array.isArray(user.salesHistory)) {
                 const nowTz = toTzDate(new Date());
 
@@ -81,6 +83,13 @@ export default {
                     .map(s => ({ d: toTzDate(s.date), total: Number(s.total) || 0 }))
                     .filter(item => item.d >= startOfDay && item.d <= endOfDay)
                     .reduce((acc, item) => acc + item.total, 0);
+
+                const startOfYesterday = new Date(startOfDay.getTime() - 24 * 60 * 60 * 1000);
+                const endOfYesterday = new Date(endOfDay.getTime() - 24 * 60 * 60 * 1000);
+                yesterdayTotal = user.salesHistory
+                    .map(s => ({ d: toTzDate(s.date), total: Number(s.total) || 0 }))
+                    .filter(item => item.d >= startOfYesterday && item.d <= endOfYesterday)
+                    .reduce((acc, item) => acc + item.total, 0);
             }
 
             await interaction.editReply({
@@ -102,7 +111,7 @@ export default {
                             interaction.member.permissions.has(PermissionsBitField.Flags.Administrator) ? [
                                 { name: 'Total em vendas', value: `\`R$${user.totalSales.toFixed(2)} (${user.salesHistory ? user.salesHistory.length : 0} vendas)\``, inline: true },
                                 { name: 'Última venda', value: user.lastSale ? `<t:${Math.floor(new Date(user.lastSale).getTime() / 1000)}:R>` : 'Nenhuma', inline: true },
-                                { name: 'Rendimento', value: `\`Mês atual: R$${monthTotal.toFixed(2)}\nÚltima semana: R$${weekTotal.toFixed(2)}\nHoje: R$${todayTotal.toFixed(2)}\``, inline: false }
+                                { name: 'Rendimento', value: `\`Mês atual: R$${monthTotal.toFixed(2)}\nÚltimos 7 dias: R$${weekTotal.toFixed(2)}\nOntem: R$${yesterdayTotal.toFixed(2)}\nHoje: R$${todayTotal.toFixed(2)}\``, inline: false }
                             ] : [
                                 { name: 'Usuário é um vendedor', value: 'Esse usuário é um vendedor, mas você não tem permissão para ver os dados de vendas dele.', inline: false }
                             ]
