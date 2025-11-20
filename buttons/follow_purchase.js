@@ -21,7 +21,8 @@ export default {
 		// Calcular valor total
 		const total = ticket.cart.reduce((acc, product) => acc + product.price*product.amount, 0);
 		if (total <= 0) return await interaction.editReply({content: 'O valor do carrinho é inválido.'});
-
+		if (total < 1.00) return await interaction.editReply({content: 'O valor mínimo para concluir a compra é R$1.00.'});
+		
         await interaction.reply({
             content: `-# <@&1339004186129338501> <@${interaction.user.id}>`,
             embeds: [
