@@ -54,7 +54,7 @@ export default {
                         .setCustomId(`product_category`)
                         .setLabel('ID da Categoria do Produto')
                         .setStyle(TextInputStyle.Short)
-                        .setPlaceholder(`Uma das seguintes: ${(await client.db().collection('product_categories').find().toArray()).map(category => category.id).join(', ')}`)
+                        .setPlaceholder(`Uma das seguintes: ${(await client.db().collection('product_categories').find().toArray()).map(category => category.id).join(', ')}`.substring(0, 100))
                         .setRequired(true)
                     ),
                     new ActionRowBuilder()
