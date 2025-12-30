@@ -40,7 +40,7 @@ export default {
                         .setCustomId(`category_id`)
                         .setLabel('ID da Categoria')
                         .setStyle(TextInputStyle.Short)
-                        .setPlaceholder(`Um dos seguintes: ${categories.map(category => category.id).join(', ')}`)
+                        .setPlaceholder(`Um dos seguintes: ${categories.map(category => category.id).join(', ')}`.substring(0, 100))
                         .setRequired(true)
                     )
                 )
