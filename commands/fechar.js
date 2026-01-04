@@ -1,11 +1,15 @@
 import {
     ChannelType,
     ChatInputCommandInteraction,
+    Colors,
+    ContainerBuilder,
     MessageFlags,
     SlashCommandBuilder,
+    TextDisplayBuilder,
 } from "discord.js";
 import "dotenv/config";
 import client from "../src/Client.js";
+import botConfig from "../config.json" with { type: "json" };
 
 export default {
 
@@ -17,7 +21,17 @@ export default {
      * @param {ChatInputCommandInteraction} interaction 
      */
     async execute(interaction) {
-        await interaction.reply({content: "Fechando seu carrinho...", flags: [MessageFlags.Ephemeral]});
+        if(interaction.channelId != botConfig.channel.newCart) return await interaction.editReply({
+            flags: [MessageFlags.IsComponentsV2],
+            components: [
+                new ContainerBuilder()
+                .addTextDisplayComponents(
+                    new TextDisplayBuilder()
+                    .setContent("❌ Você só pode usar esse comando no canal de criação de carrinhos.")
+                )
+                .setAccentColor(Colors.DarkRed)
+            ]
+        });
 
         try {
             interaction.channel.type == ChannelType.PrivateThread &&
