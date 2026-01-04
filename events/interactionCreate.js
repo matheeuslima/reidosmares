@@ -11,7 +11,7 @@ import {
 } from "discord.js";
 import fs from "fs";
 import path from "path";
-import { fileURLToPath } from "url";
+import { fileURLToPath, pathToFileURL } from "url";
 import botConfig from "../config.json" with { type: "json" };
 import client from "../src/Client.js";
 import { inspect } from "util";
@@ -106,7 +106,7 @@ async function handleButton(interaction) {
     const buttonFiles = fs.readdirSync(buttonsPath).filter(file => file.endsWith(".js"));
 
     for (const file of buttonFiles) {
-        const { default: button } = await import(`file://${path.join(buttonsPath, file)}`);
+        const { default: button } = await import(pathToFileURL(path.resolve(buttonsPath, file)).href);
         const buttonName = path.basename(file, ".js");
         client.buttons.set(buttonName, button);
     }
@@ -160,7 +160,7 @@ async function handleSelectMenu(interaction) {
     if (fs.existsSync(selectsPath)) {
         const selectFiles = fs.readdirSync(selectsPath).filter(file => file.endsWith(".js"));
         for (const file of selectFiles) {
-            const { default: select } = await import(`file://${path.join(selectsPath, file)}`);
+            const { default: select } = await import(pathToFileURL(path.resolve(selectsPath, file)).href);
             const selectName = path.basename(file, ".js");
             client.selects.set(selectName, select);
         }
@@ -206,7 +206,7 @@ async function handleModalSubmit(interaction) {
     if (fs.existsSync(modalsPath)) {
         const modalFiles = fs.readdirSync(modalsPath).filter(file => file.endsWith(".js"));
         for (const file of modalFiles) {
-            const { default: modal } = await import(`file://${path.join(modalsPath, file)}`);
+            const { default: modal } = await import(pathToFileURL(path.resolve(modalsPath, file)).href);
             const modalName = path.basename(file, ".js");
             client.modals.set(modalName, modal);
         }
@@ -249,7 +249,7 @@ async function getCommands(dir) {
     const commandFiles = getFiles(dir);
 
     for (const commandFile of commandFiles) {
-        const { default: command } = await import(`file://${commandFile}`);
+        const { default: command } = await import(pathToFileURL(commandFile).href);
         commands.set(command.data.toJSON().name, command);
     }
 

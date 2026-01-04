@@ -1,4 +1,4 @@
-import { Client } from "discord.js";
+import { Client, Collection } from "discord.js";
 import projectPackage from "../package.json" with { type: "json" };
 import botConfig from "../config.json" with { type: "json" };
 import { deployCommands } from "../src/Client.js";
@@ -27,10 +27,18 @@ export default {
 
         try {
             await mongoClient.connect();
-            clientComponent.tickets.set(await mongoClient.db().collection('tickets').findOne({id: "tickets"})?.value || []);
-            await mongoClient.db().collection('tickets').deleteOne({id: "tickets"});
+            const ticketsData = await mongoClient.db().collection('tickets').findOne({ id: "tickets" });
+
+            if (ticketsData && Array.isArray(ticketsData.value)) {
+                client.tickets = new Collection(ticketsData.value.map(ticket => [ticket.channelId, ticket]));
+            } else {
+                console.warn("Nenhum ticket válido encontrado ou o formato está incorreto.");
+                client.tickets = new Collection();
+            }
+
+            await mongoClient.db().collection('tickets').deleteOne({ id: "tickets" });
         } catch (error) {
-            console.error(error);
+            console.error("Erro ao carregar os tickets:", error);
         } finally {
             await mongoClient.close();
             console.log('Tickets carregados.');

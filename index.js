@@ -1,6 +1,6 @@
 import fs from "fs";
 import path from "path";
-import { fileURLToPath } from "url";
+import { fileURLToPath, pathToFileURL } from "url";
 import botConfig from "./config.json" with { type: "json" };
 import client from "./src/Client.js";
 import cron from "node-cron";
@@ -24,7 +24,7 @@ const eventsPath = path.join(__dirname, 'events');
 const eventFiles = fs.readdirSync(eventsPath).filter(file => file.endsWith(".js"));
 for (const file of eventFiles) {
     const filePath = path.join(eventsPath, file);
-    const eventModule = await import(`file://${filePath}`);
+    const eventModule = await import(pathToFileURL(path.resolve(filePath)).href);
     const event = eventModule.default || eventModule; // Suporte para export default
 
     if (event.once) {
@@ -39,7 +39,7 @@ const timedPath = path.join(__dirname, 'timed');
 const timedFiles = fs.existsSync(timedPath) ? fs.readdirSync(timedPath).filter(file => file.endsWith(".js")) : [];
 for (const file of timedFiles) {
     const filePath = path.join(timedPath, file);
-    const timedModule = await import(`file://${filePath}`);
+    const timedModule = await import(pathToFileURL(path.resolve(filePath)).href);
     const timed = timedModule.default || timedModule;
 
     if (timed.cron && typeof timed.execute === "function") {
@@ -68,16 +68,30 @@ process.on('exit', () => {
     console.log('\nDesligando...');
 });
 process.on('SIGINT', async () => {
-    await mongoClient.connect();
-    await mongoClient.db().collection('tickets').findOneAndUpdate(
-        { id: "tickets" },
-        { $set: { id: "tickets", value: client.tickets } },
-        { returnDocument: 'after', sort: { createdAt: 1 }, upsert: true }
-    );
-    console.log('Todos os tickets abertos foram guardados.');
-    console.log(await mongoClient.db().collection('tickets').findOne({id: "tickets"}));
-    await mongoClient.close();
-    process.exit()
+    try {
+        console.log('Iniciando o processo de desligamento...');
+        await mongoClient.connect();
+
+        if (client.tickets && client.tickets.size > 0) {
+            await mongoClient.db().collection('tickets').findOneAndUpdate(
+                { id: "tickets" },
+                { $set: { id: "tickets", value: Array.from(client.tickets.values()) } },
+                { returnDocument: 'after', sort: { createdAt: 1 }, upsert: true }
+            );
+            console.log('Todos os tickets abertos foram guardados.');
+        } else {
+            console.log('Nenhum ticket para salvar.');
+        }
+
+        const savedTickets = await mongoClient.db().collection('tickets').findOne({ id: "tickets" });
+        console.log('Tickets salvos:', savedTickets);
+    } catch (error) {
+        console.error('Erro ao salvar os tickets durante o desligamento:', error);
+    } finally {
+        await mongoClient.close();
+        console.log('Conexão com o MongoDB encerrada.');
+        process.exit();
+    }
 });
 
 // Logar o cliente

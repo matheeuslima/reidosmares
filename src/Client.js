@@ -11,6 +11,7 @@ import fs from "fs";
 import path from "path";
 import { REST } from "@discordjs/rest";
 import botConfig from "../config.json" with { type: "json" };
+import { pathToFileURL } from "url";
 
 const client = new Client({
     intents: [
@@ -166,7 +167,7 @@ export async function deployCommands(serverId) {
 
     for (const file of commandFiles) {
         // Use import dinâmico em ES module
-        const command = (await import(path.resolve(file))).default;
+        const command = (await import(pathToFileURL(path.resolve(file)).href)).default;
         commands.push(command.data.toJSON());
     }
 
