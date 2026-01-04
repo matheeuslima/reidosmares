@@ -17,12 +17,14 @@ export default {
     .setName("fechar")
     .setDescription("Feche seu carrinho."),
 
+    ephemeral: true,
+
     /**
      * @param {ChatInputCommandInteraction} interaction 
      */
     async execute(interaction) {
         if(interaction.channelId != botConfig.channel.newCart) return await interaction.editReply({
-            flags: [MessageFlags.IsComponentsV2],
+            flags: [MessageFlags.IsComponentsV2, MessageFlags.Ephemeral],
             components: [
                 new ContainerBuilder()
                 .addTextDisplayComponents(

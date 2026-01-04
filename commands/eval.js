@@ -222,7 +222,6 @@ export default {
         .setRequired(true)
     ),
 
-    setup_step: -1,
     ephemeral: true,
 
     /**
