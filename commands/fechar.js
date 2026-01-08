@@ -23,7 +23,7 @@ export default {
      * @param {ChatInputCommandInteraction} interaction 
      */
     async execute(interaction) {
-        if(interaction.channelId != botConfig.channel.newCart) return await interaction.editReply({
+        if(interaction.channel.parentId != botConfig.channel.newCart) return await interaction.editReply({
             flags: [MessageFlags.IsComponentsV2, MessageFlags.Ephemeral],
             components: [
                 new ContainerBuilder()
@@ -31,7 +31,7 @@ export default {
                     new TextDisplayBuilder()
                     .setContent("❌ Você só pode usar esse comando no canal de criação de carrinhos.")
                 )
-                .setAccentColor(Colors.DarkRed)
+                .setAccentColor(Colors.Red)
             ]
         });
 

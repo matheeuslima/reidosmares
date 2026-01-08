@@ -81,6 +81,7 @@ export default {
             });
 
             const ticket = {
+                id: channel.id,
                 author: interaction.user.id,
                 seller: undefined,
                 store: undefined,
