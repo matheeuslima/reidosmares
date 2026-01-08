@@ -1,6 +1,6 @@
 {
   "name": "reidosmares",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "description": "Bot para gerência da uma loja do Donu",
   "main": "index.js",
   "scripts": {

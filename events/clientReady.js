@@ -27,21 +27,22 @@ export default {
 
         try {
             await mongoClient.connect();
-            const ticketsData = await mongoClient.db().collection('tickets').findOne({ id: "tickets" });
+            const savedTickets = await mongoClient.db().collection('tickets').findOne({ id: "tickets" });
 
-            if (ticketsData && Array.isArray(ticketsData.value)) {
-                client.tickets = new Collection(ticketsData.value.map(ticket => [ticket.channelId, ticket]));
-            } else {
-                console.warn("Nenhum ticket válido encontrado ou o formato está incorreto.");
+            if (savedTickets && savedTickets.value) {
                 client.tickets = new Collection();
+                savedTickets.value.forEach(ticket => {
+                    client.tickets.set(ticket.id, ticket);
+                });
+                console.log('Tickets restaurados:', client.tickets);
+            } else {
+                client.tickets = new Collection();
+                console.log('Nenhum ticket salvo encontrado.');
             }
-
-            await mongoClient.db().collection('tickets').deleteOne({ id: "tickets" });
         } catch (error) {
-            console.error("Erro ao carregar os tickets:", error);
+            console.error('Erro ao restaurar os tickets:', error);
         } finally {
             await mongoClient.close();
-            console.log('Tickets carregados.');
         }
     }
 };

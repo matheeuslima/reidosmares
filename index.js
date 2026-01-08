@@ -93,28 +93,5 @@ process.on('SIGINT', async () => {
     }
 });
 
-// Restaurar tickets ao iniciar o bot
-/*(async () => {
-    try {
-        await mongoClient.connect();
-        const savedTickets = await mongoClient.db().collection('tickets').findOne({ id: "tickets" });
-
-        if (savedTickets && savedTickets.value) {
-            client.tickets = new Collection();
-            savedTickets.value.forEach(ticket => {
-                client.tickets.set(ticket.id, ticket);
-            });
-            console.log('Tickets restaurados:', client.tickets);
-        } else {
-            client.tickets = new Collection();
-            console.log('Nenhum ticket salvo encontrado.');
-        }
-    } catch (error) {
-        console.error('Erro ao restaurar os tickets:', error);
-    } finally {
-        await mongoClient.close();
-    }
-})();*/
-
 // Logar o cliente
 client.login(process.env.DISCORD_BOT_TOKEN);
