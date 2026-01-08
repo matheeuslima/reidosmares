@@ -1,14 +1,19 @@
 import {
-    ActionRowBuilder,
+    LabelBuilder,
     ButtonInteraction,
     ModalBuilder,
     TextInputBuilder,
     TextInputStyle,
+    StringSelectMenuBuilder,
+    MessageFlags,
+    ContainerBuilder,
+    TextDisplayBuilder,
+    Colors,
 } from "discord.js";
 import { MongoClient, ServerApiVersion } from "mongodb";
 import "dotenv/config";
 
-const client = new MongoClient(process.env.MONGODB_URI, {
+const mongoClient = new MongoClient(process.env.MONGODB_URI, {
   serverApi: {
     version: ServerApiVersion.v1,
     strict: true,
@@ -23,54 +28,66 @@ export default {
      */
     async execute(interaction) {
         try {
-            await client.connect();
+            await mongoClient.connect();
 
-            interaction.showModal(
+            const categories = await mongoClient.db().collection('product_categories').find().toArray();
+
+            await interaction.showModal(
                 new ModalBuilder()
                 .setCustomId(`add_product`)
                 .setTitle('Novo produto')
-                .addComponents(
-                    new ActionRowBuilder()
-                    .addComponents(
+                .setLabelComponents(
+                    new LabelBuilder()
+                    .setLabel('Nome do Produto')
+                    .setTextInputComponent(
                         new TextInputBuilder()
                         .setCustomId(`product_name`)
-                        .setLabel('Nome do Produto')
                         .setStyle(TextInputStyle.Short)
                         .setPlaceholder(`Ex.: 1000 Sheckles`)
                         .setRequired(true)
                     ),
-                    new ActionRowBuilder()
-                    .addComponents(
+                    new LabelBuilder()
+                    .setLabel('ID do Produto')
+                    .setTextInputComponent(
                         new TextInputBuilder()
                         .setCustomId(`product_id`)
-                        .setLabel('ID do Produto')
                         .setStyle(TextInputStyle.Short)
                         .setPlaceholder(`Ex.: 1000_sheckles`)
                         .setRequired(true)
                     ),
-                    new ActionRowBuilder()
-                    .addComponents(
-                        new TextInputBuilder()
+                    new LabelBuilder()
+                    .setLabel('Categoria do Produto')
+                    .setStringSelectMenuComponent(
+                        new StringSelectMenuBuilder()
                         .setCustomId(`product_category`)
-                        .setLabel('ID da Categoria do Produto')
-                        .setStyle(TextInputStyle.Short)
-                        .setPlaceholder(`Uma das seguintes: ${(await client.db().collection('product_categories').find().toArray()).map(category => category.id).join(', ')}`.substring(0, 100))
                         .setRequired(true)
+                        .setOptions(categories.map(category => {
+                            return {
+                                label: category.name,
+                                value: category.id,
+                                description: category.description,
+                                emoji: category.emoji || undefined
+                            }
+                        }) || {
+                            label: 'Não há categorias',
+                            value: 'undefined',
+                            description: 'Nenhuma categoria registrada',
+                        })
                     ),
-                    new ActionRowBuilder()
-                    .addComponents(
+                    new LabelBuilder()
+                    .setLabel('Emoji do Produto')
+                    .setTextInputComponent(
                         new TextInputBuilder()
                         .setCustomId(`product_emoji`)
-                        .setLabel('Emoji do Produto')
                         .setStyle(TextInputStyle.Short)
                         .setPlaceholder(`Ex.: 😁`)
                         .setRequired(true)
                     ),
-                    new ActionRowBuilder()
-                    .addComponents(
+                    new LabelBuilder()
+                    .setLabel('Preço do Produto (Unidade)')
+                    .setTextInputComponent(
                         new TextInputBuilder()
                         .setCustomId(`product_price`)
-                        .setLabel('Preço do Produto (Unidade)')
                         .setStyle(TextInputStyle.Short)
                         .setPlaceholder(`Ex.: 7.00 (apenas número com . para separar centavos se necessário)`)
                         .setRequired(true)
@@ -80,9 +97,19 @@ export default {
             
         } catch (error) {
             console.error(error);
-            await interaction.editReply({content: `Ocorreu um erro na execução dessa ação. ${error.message}.`});
+            await interaction.reply({
+                flags: [MessageFlags.IsComponentsV2, MessageFlags.Ephemeral],
+                components: [
+                    new ContainerBuilder()
+                    .addTextDisplayComponents(
+                        new TextDisplayBuilder()
+                        .setContent(`❌ Ocorreu um erro. ${error.message}`)
+                    )
+                    .setAccentColor(Colors.Red)
+                ]
+            });
         } finally {
-            await client.close();
+            await mongoClient.close();
         }
     }
 

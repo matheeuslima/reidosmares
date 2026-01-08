@@ -1,4 +1,4 @@
-import { ActionRowBuilder, ButtonBuilder, ButtonInteraction, ButtonStyle, Colors, EmbedBuilder, MessageFlags } from "discord.js";
+import { ActionRowBuilder, ButtonBuilder, ButtonInteraction, ButtonStyle, Colors, ContainerBuilder, EmbedBuilder, MessageFlags, SectionBuilder, SeparatorBuilder, SeparatorSpacingSize, TextDisplayBuilder, ThumbnailBuilder } from "discord.js";
 import client from "../src/Client.js";
 import botConfig from "../config.json" with { type: "json" };
 import { MongoClient, ServerApiVersion } from "mongodb";
@@ -66,7 +66,59 @@ export default {
                     ])
                 ]
             });
-
+            logChannel.send({
+                flags: [MessageFlags.IsComponentsV2],
+                components: [
+                    new ContainerBuilder()
+                    .setAccentColor(Colors.Green)
+                    .addSectionComponents(
+                        new SectionBuilder()
+                        .addTextDisplayComponents(
+                            new TextDisplayBuilder()
+                            .setContent(`## 🛍 Compra realizada!`)
+                        )
+                        .addTextDisplayComponents(
+                            new TextDisplayBuilder()
+                            .setContent(`<t:${Math.floor(Date.now() / 1000)}:f>`)
+                        )
+                        .addTextDisplayComponents(
+                            new TextDisplayBuilder()
+                            .setContent(`<@${ticketAuthor.user.id}> comprou de <@${ticket.seller}>`)
+                        )
+                        .setThumbnailAccessory(
+                            new ThumbnailBuilder()
+                            .setURL(ticketAuthor.user.displayAvatarURL())
+                        )
+                    )
+                    .addSeparatorComponents(
+                        new SeparatorBuilder()
+                        .setDivider(true)
+                        .setSpacing(SeparatorSpacingSize.Large)
+                    )
+                    .addTextDisplayComponents(
+                        new TextDisplayBuilder()
+                        .setContent(`### 🛒 Carrinho:\n${ticket.cart.map(p => `- \`${p.amount}x ${p.name} (R$${(p.price * p.amount).toFixed(2)})\``).join('\n') || 'Nenhum produto adicionado.'}`)
+                    )
+                    .addTextDisplayComponents(
+                        new TextDisplayBuilder()
+                        .setContent(`### 💳 Valor pago:\n\`R$${total.toFixed(2)}\``)
+                    )
+                    .addSeparatorComponents(
+                        new SeparatorBuilder()
+                        .setDivider(true)
+                        .setSpacing(SeparatorSpacingSize.Large)
+                    )
+                    .addActionRowComponents(
+                        new ActionRowBuilder()
+                        .setComponents(
+                            new ButtonBuilder()
+                            .setLabel('Compre também!')
+                            .setStyle(ButtonStyle.Link)
+                            .setURL(`https://discord.com/channels/${interaction.guild.id}/${botConfig.channel.newCart}`)
+                        )
+                    )
+                ]
+            })
         }
 
         interaction.message.editable &&
@@ -129,7 +181,25 @@ export default {
 
             // review
             await interaction.guild.channels.cache.get(botConfig.channel.reviews)
-            .send(`# <@${ticket.author}>\nParabéns pela sua compra! Avalie a loja e o atendimento aqui.\n-# Essa mensagem expira <t:${Math.floor(Date.now() / 1000) + 10}:R>.`)
+            .send({
+                flags: [MessageFlags.IsComponentsV2],
+                components: [
+                    new ContainerBuilder()
+                    .setAccentColor(Colors.Yellow)
+                    .addSectionComponents(
+                        new SectionBuilder()
+                        .addTextDisplayComponents(
+                            new TextDisplayBuilder()
+                            .setContent(`# <@${ticket.author}>\nObrigado pela sua compra! Avalie a loja e o atendimento aqui.\n-# Essa mensagem expira <t:${Math.floor(Date.now() / 1000) + 10}:R>.`)
+                        )
+                        .setThumbnailAccessory(
+                            new ThumbnailBuilder()
+                            .setURL(`https://images.emojiterra.com/twitter/v13.1/512px/2b50.png`)
+                            .setDescription('Estrela')
+                        )
+                    )
+                ]
+            })
             .then(msg => {
                 setTimeout(() => {
                     msg?.deletable && msg?.delete();

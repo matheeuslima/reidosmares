@@ -9,7 +9,7 @@ import {
 import { MongoClient, ServerApiVersion } from "mongodb";
 import "dotenv/config";
 
-const client = new MongoClient(process.env.MONGODB_URI, {
+const mongoClient = new MongoClient(process.env.MONGODB_URI, {
   serverApi: {
     version: ServerApiVersion.v1,
     strict: true,
@@ -24,9 +24,9 @@ export default {
      */
     async execute(interaction) {
         try {
-            await client.connect();
+            await mongoClient.connect();
 
-            const roles_by_spending = await client.db().collection('roles_by_spending').find().toArray();
+            const roles_by_spending = await mongoClient.db().collection('roles_by_spending').find().toArray();
             if(!roles_by_spending?.length) return interaction.reply({content: `Não há cargos para excluir.`, flags: [MessageFlags.Ephemeral]})
 
             interaction.showModal(
@@ -50,7 +50,7 @@ export default {
             console.error(error);
             await interaction.editReply({content: `Ocorreu um erro na execução dessa ação. ${error.message}.`});
         } finally {
-            await client.close();
+            await mongoClient.close();
         }
     }
 

@@ -1,14 +1,19 @@
 import {
-    ActionRowBuilder,
     ButtonInteraction,
+    Colors,
+    ContainerBuilder,
+    LabelBuilder,
+    MessageFlags,
     ModalBuilder,
+    RoleSelectMenuBuilder,
+    TextDisplayBuilder,
     TextInputBuilder,
     TextInputStyle,
 } from "discord.js";
 import { MongoClient, ServerApiVersion } from "mongodb";
 import "dotenv/config";
 
-const client = new MongoClient(process.env.MONGODB_URI, {
+const mongoClient = new MongoClient(process.env.MONGODB_URI, {
   serverApi: {
     version: ServerApiVersion.v1,
     strict: true,
@@ -23,27 +28,25 @@ export default {
      */
     async execute(interaction) {
         try {
-            await client.connect();
+            await mongoClient.connect();
 
-            interaction.showModal(
+            await interaction.showModal(
                 new ModalBuilder()
                 .setCustomId(`add_role_by_spending`)
                 .setTitle('Novo cargo por gastos')
-                .addComponents(
-                    new ActionRowBuilder()
-                    .addComponents(
-                        new TextInputBuilder()
+                .setLabelComponents(
+                    new LabelBuilder()
+                    .setLabel('Cargo')
+                    .setRoleSelectMenuComponent(
+                        new RoleSelectMenuBuilder()
                         .setCustomId(`role_id`)
-                        .setLabel('ID do Cargo')
-                        .setStyle(TextInputStyle.Short)
-                        .setPlaceholder(`Ex.: 123456789012345678`)
                         .setRequired(true)
                     ),
-                    new ActionRowBuilder()
-                    .addComponents(
+                    new LabelBuilder()
+                    .setLabel('Valor de Gastos (em R$)')
+                    .setTextInputComponent(
                         new TextInputBuilder()
                         .setCustomId(`spending_threshold`)
-                        .setLabel('Valor de Gastos (em R$)')
                         .setStyle(TextInputStyle.Short)
                         .setPlaceholder(`Ex.: 1000.00`)
                         .setRequired(true)
@@ -53,9 +56,19 @@ export default {
             
         } catch (error) {
             console.error(error);
-            await interaction.editReply({content: `Ocorreu um erro na execução dessa ação. ${error.message}.`});
+            await interaction.reply({
+                flags: [MessageFlags.IsComponentsV2, MessageFlags.Ephemeral],
+                components: [
+                    new ContainerBuilder()
+                    .addTextDisplayComponents(
+                        new TextDisplayBuilder()
+                        .setContent(`❌ Ocorreu um erro. ${error.message}`)
+                    )
+                    .setAccentColor(Colors.Red)
+                ]
+            });
         } finally {
-            await client.close();
+            await mongoClient.close();
         }
     }
 

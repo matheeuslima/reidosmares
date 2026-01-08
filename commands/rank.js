@@ -8,7 +8,7 @@ import {
 import { MongoClient, ServerApiVersion } from "mongodb";
 import "dotenv/config";
 
-const client = new MongoClient(process.env.MONGODB_URI, {
+const mongoClient = new MongoClient(process.env.MONGODB_URI, {
   serverApi: {
     version: ServerApiVersion.v1,
     strict: true,
@@ -27,9 +27,9 @@ export default {
      */
     async execute(interaction) {
         try {
-            await client.connect();
+            await mongoClient.connect();
 
-            const topUsers = await client.db().collection('users').find().sort({ totalSpent: -1 }).limit(10).toArray();
+            const topUsers = await mongoClient.db().collection('users').find().sort({ totalSpent: -1 }).limit(10).toArray();
             if(topUsers.length === 0) return interaction.editReply({content: `Nenhum usuário encontrado no banco de dados.`, flags: [MessageFlags.Ephemeral]});
 
             await interaction.editReply({
@@ -48,7 +48,7 @@ export default {
             console.error(error);
             await interaction.editReply({content: `Ocorreu um erro na execução dessa ação. ${error.message}.`, flags: [MessageFlags.Ephemeral]});
         } finally {
-            await client.close();
+            await mongoClient.close();
         }
     }
 

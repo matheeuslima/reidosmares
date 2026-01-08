@@ -1,8 +1,8 @@
-import { ActionRowBuilder, MessageFlags, ModalBuilder, StringSelectMenuInteraction, TextInputBuilder, TextInputStyle } from "discord.js";
+import { ActionRowBuilder, LabelBuilder, MessageFlags, ModalBuilder, StringSelectMenuBuilder, StringSelectMenuInteraction, TextInputBuilder, TextInputStyle } from "discord.js";
 import { MongoClient, ServerApiVersion } from "mongodb";
 import "dotenv/config";
 
-const client = new MongoClient(process.env.MONGODB_URI, {
+const mongoClient = new MongoClient(process.env.MONGODB_URI, {
   serverApi: {
     version: ServerApiVersion.v1,
     strict: true,
@@ -17,64 +17,70 @@ export default {
      */
     async execute(interaction) {
         try {
-            await client.connect();
-            const category = await client.db().collection('product_categories').findOne({id: interaction.values[0]});
+            await mongoClient.connect();
+            const category = await mongoClient.db().collection('product_categories').findOne({id: interaction.values[0]});
             if(!category) return interaction.reply({content: `Categoria de produtos não encontrada no banco de dados.`, flags: [MessageFlags.Ephemeral]});
             
             await interaction.showModal(
                 new ModalBuilder()
                 .setCustomId(`edit_category:${interaction.values[0]}`)
                 .setTitle('Editar categoria de produtos')
-                .setComponents([
-                    new ActionRowBuilder()
-                    .setComponents(
+                .addLabelComponents([
+                    new LabelBuilder()
+                    .setLabel('Nome da Categoria')
+                    .setTextInputComponent(
                         new TextInputBuilder()
                         .setCustomId('category_name')
-                        .setLabel('Nome da Categoria')
                         .setStyle(TextInputStyle.Short)
                         .setPlaceholder('Ex.: Eletrônicos')
                         .setRequired(true)
                         .setValue(category.name)
                     ),
-                    new ActionRowBuilder()
-                    .setComponents(
+                    new LabelBuilder()
+                    .setLabel('Emoji da Categoria')
+                    .setTextInputComponent(
                         new TextInputBuilder()
                         .setCustomId('category_emoji')
-                        .setLabel('Emoji da Categoria')
                         .setStyle(TextInputStyle.Short)
                         .setPlaceholder('Ex.: 📱')
                         .setRequired(true)
                         .setValue(category.emoji)
                     ),
-                    new ActionRowBuilder()
-                    .setComponents(
+                    new LabelBuilder()
+                    .setLabel('Descrição da Categoria')
+                    .setTextInputComponent(
                         new TextInputBuilder()
                         .setCustomId('category_description')
-                        .setLabel('Descrição da Categoria')
                         .setStyle(TextInputStyle.Paragraph)
                         .setPlaceholder('Descreva a categoria para os clientes.')
                         .setRequired(true)
                         .setValue(category.description)
                     ),
-                    new ActionRowBuilder()
-                    .setComponents(
+                    new LabelBuilder()
+                    .setLabel('ID da Categoria')
+                    .setTextInputComponent(
                         new TextInputBuilder()
                         .setCustomId('category_id')
-                        .setLabel('ID da Categoria')
                         .setStyle(TextInputStyle.Short)
                         .setPlaceholder('Ex.: eletronicos')
                         .setRequired(true)
                         .setValue(category.id)
                     ),
-                    new ActionRowBuilder()
-                    .setComponents(
-                        new TextInputBuilder()
+                    new LabelBuilder()
+                    .setLabel('Loja da Categoria')
+                    .setStringSelectMenuComponent(
+                        new StringSelectMenuBuilder()
                         .setCustomId('category_store')
-                        .setLabel('Loja da Categoria')
-                        .setStyle(TextInputStyle.Short)
-                        .setPlaceholder('Ex.: loja1')
-                        .setRequired(true)
-                        .setValue(category.store || '')
+                        .setPlaceholder(`${category.store || 'Nenhuma'}`.substring(0, 100))
+                        .addOptions((await mongoClient.db().collection('stores').find().toArray()).map(store => {
+                            return {
+                                label: store.name,
+                                description: store.id,
+                                value: store.id,
+                                emoji: store.emoji || undefined,
+                                default: store.id === category.store
+                            }
+                        }))
                     )
                 ])
             )
@@ -82,7 +88,7 @@ export default {
             console.error(error);
             await interaction.reply({content: `Ocorreu um erro na execução dessa ação. ${error.message}.`, flags: [MessageFlags.Ephemeral]});
         } finally {
-            await client.close();
+            await mongoClient.close();
         }
     }
 

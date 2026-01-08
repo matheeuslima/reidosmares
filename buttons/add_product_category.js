@@ -1,10 +1,25 @@
 import {
-    ActionRowBuilder,
     ButtonInteraction,
+    Colors,
+    ContainerBuilder,
+    LabelBuilder,
+    MessageFlags,
     ModalBuilder,
+    StringSelectMenuBuilder,
+    TextDisplayBuilder,
     TextInputBuilder,
     TextInputStyle,
 } from "discord.js";
+import { MongoClient, ServerApiVersion } from "mongodb";
+import "dotenv/config";
+
+const mongoClient = new MongoClient(process.env.MONGODB_URI, {
+  serverApi: {
+    version: ServerApiVersion.v1,
+    strict: true,
+    deprecationErrors: true,
+  }
+});
 
 export default {
 
@@ -13,62 +28,88 @@ export default {
      */
     async execute(interaction) {
         try {
-            interaction.showModal(
+            await mongoClient.connect();
+
+            const stores = await mongoClient.db().collection('stores').find().toArray();
+
+            await interaction.showModal(
                 new ModalBuilder()
                 .setCustomId(`add_product_category`)
                 .setTitle('Nova categoria de produtos')
-                .addComponents(
-                    new ActionRowBuilder()
-                    .addComponents(
+                .setLabelComponents(
+                    new LabelBuilder()
+                    .setLabel('Nome da Categoria')
+                    .setTextInputComponent(
                         new TextInputBuilder()
                         .setCustomId(`category_name`)
-                        .setLabel('Nome da Categoria')
                         .setStyle(TextInputStyle.Short)
                         .setPlaceholder(`Ex.: Sheckles`)
                         .setRequired(true)
                     ),
-                    new ActionRowBuilder()
-                    .addComponents(
+                    new LabelBuilder()
+                    .setLabel('ID da Categoria')
+                    .setTextInputComponent(
                         new TextInputBuilder()
                         .setCustomId(`category_id`)
-                        .setLabel('ID da Categoria')
                         .setStyle(TextInputStyle.Short)
                         .setPlaceholder(`Ex.: sheckles`)
                         .setRequired(true)
                     ),
-                    new ActionRowBuilder()
-                    .addComponents(
+                    new LabelBuilder()
+                    .setLabel('Emoji Ícone da Categoria')
+                    .setTextInputComponent(
                         new TextInputBuilder()
                         .setCustomId(`category_emoji`)
-                        .setLabel('Emoji Ícone da Categoria')
                         .setStyle(TextInputStyle.Short)
                         .setPlaceholder(`Ex.: 😁`)
                         .setRequired(true)
                     ),
-                    new ActionRowBuilder()
-                    .addComponents(
+                    new LabelBuilder()
+                    .setLabel('Descrição da Categoria')
+                    .setTextInputComponent(
                         new TextInputBuilder()
                         .setCustomId(`category_description`)
-                        .setLabel('Descrição da Categoria')
                         .setStyle(TextInputStyle.Paragraph)
                         .setPlaceholder(`Ex.: Qual tipo de produto você encontra aqui`)
                         .setRequired(true)
                     ),
-                    new ActionRowBuilder()
-                    .addComponents(
-                        new TextInputBuilder()
+                    new LabelBuilder()
+                    .setLabel('Loja da Categoria')
+                    .setStringSelectMenuComponent(
+                        new StringSelectMenuBuilder()
                         .setCustomId(`category_store`)
-                        .setLabel('Loja da Categoria')
-                        .setStyle(TextInputStyle.Paragraph)
-                        .setPlaceholder(`Ex.: loja1`)
                         .setRequired(true)
+                        .setOptions(stores.map(store => {
+                            return {
+                                label: store.name,
+                                value: store.id,
+                                emoji: store.emoji || undefined,
+                                description: store.id
+                            }
+                        }) || {
+                            label: 'Não há lojas',
+                            value: 'undefined',
+                            description: 'Nenhuma loja registrada',
+                        })
                     )
                 )
             )
             
         } catch (error) {
             console.error(error);
-            await interaction.editReply({content: `Ocorreu um erro na execução dessa ação. ${error.message}.`});
+            await interaction.reply({
+                flags: [MessageFlags.IsComponentsV2, MessageFlags.Ephemeral],
+                components: [
+                    new ContainerBuilder()
+                    .addTextDisplayComponents(
+                        new TextDisplayBuilder()
+                        .setContent(`❌ Ocorreu um erro. ${error.message}`)
+                    )
+                    .setAccentColor(Colors.Red)
+                ]
+            });
+        } finally {
+            mongoClient.close();
         }
     }
 

@@ -10,7 +10,7 @@ import {
 import { MongoClient, ServerApiVersion } from "mongodb";
 import "dotenv/config";
 
-const client = new MongoClient(process.env.MONGODB_URI, {
+const mongoClient = new MongoClient(process.env.MONGODB_URI, {
   serverApi: {
     version: ServerApiVersion.v1,
     strict: true,
@@ -26,8 +26,8 @@ export default {
     async execute(interaction) {
         
         try {
-            await client.connect();
-            const products = (await client.db().collection('products').find({category: interaction.values[0]}).toArray()).filter(p => p.stock > 0);
+            await mongoClient.connect();
+            const products = (await mongoClient.db().collection('products').find({category: interaction.values[0]}).toArray()).filter(p => p.stock > 0);
             if(!products?.length) return interaction.reply({content: `Não há produtos em estoque nessa categoria.`, flags: [MessageFlags.Ephemeral]})
 
             await interaction.deferReply().then(reply => reply?.delete());
@@ -70,7 +70,7 @@ export default {
             console.error(error);
             await interaction.reply({content: `Ocorreu um erro na execução dessa ação. ${error.message}.`, flags: [MessageFlags.Ephemeral]});
         } finally {
-            await client.close();
+            await mongoClient.close();
         }
     }
 

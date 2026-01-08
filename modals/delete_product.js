@@ -5,7 +5,7 @@ import {
 import { MongoClient, ServerApiVersion } from "mongodb";
 import "dotenv/config";
 
-const client = new MongoClient(process.env.MONGODB_URI, {
+const mongoClient = new MongoClient(process.env.MONGODB_URI, {
   serverApi: {
     version: ServerApiVersion.v1,
     strict: true,
@@ -20,11 +20,11 @@ export default {
      */
     async execute(interaction) {
         try {
-            await client.connect();
+            await mongoClient.connect();
 
             const productId = interaction.fields.getTextInputValue('product_id');
 
-            await client.db().collection("products").deleteOne({id: productId});
+            await mongoClient.db().collection("products").deleteOne({id: productId});
 
             await interaction.reply({
                 content: `Produto "${productId}" excluído com sucesso.`,
@@ -34,7 +34,7 @@ export default {
             console.error(error);
             await interaction.reply({content: `Ocorreu um erro na execução dessa ação. ${error.message}.`, flags: [MessageFlags.Ephemeral]});
         } finally {
-            await client.close();
+            await mongoClient.close();
         }
     }
 

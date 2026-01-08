@@ -37,7 +37,8 @@ export default {
             name: `${interaction.member.roles.cache.has(botConfig.role.booster) ? "🚀 " : ""}Carrinho de ${interaction.user.username}`,
             autoArchiveDuration: ThreadAutoArchiveDuration.OneWeek,
             type: ChannelType.PrivateThread,
-            reason: `${interaction.user.username} abriu um carrinho`
+            reason: `${interaction.user.username} abriu um carrinho`,
+            invitable: false   
         });
 
         channel.send({

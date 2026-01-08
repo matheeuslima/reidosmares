@@ -11,7 +11,7 @@ import {
 import { MongoClient, ServerApiVersion } from "mongodb";
 import "dotenv/config";
 
-const client = new MongoClient(process.env.MONGODB_URI, {
+const mongoClient = new MongoClient(process.env.MONGODB_URI, {
   serverApi: {
     version: ServerApiVersion.v1,
     strict: true,
@@ -27,7 +27,7 @@ export default {
     async execute(interaction) {
         
         try {
-            await client.connect();
+            await mongoClient.connect();
             await interaction.deferReply().then(reply => reply?.delete());
             
             switch(interaction.values[0]) {
@@ -55,7 +55,7 @@ export default {
                 };
 
                 case "manage_product_categories": {
-                    const categories = await client.db().collection('product_categories').find().toArray();
+                    const categories = await mongoClient.db().collection('product_categories').find().toArray();
                     const stores = new Set(categories.map(category => category.store).filter(store => store));
 
                     await interaction.message.edit({
@@ -73,9 +73,10 @@ export default {
                                 .setCustomId('admin_panel_select_category')
                                 .setOptions(
                                     categories.length>0 ? categories.map(category => ({
-                                        label: `${category.emoji || ''} ${category.name} (${category.id})`,
+                                        label: `${category.name} (${category.id})`,
                                         description: `${category.description} | ${category.store || 'Sem loja definida'}`,
-                                        value: category.id
+                                        value: category.id,
+                                        emoji: category.emoji || undefined
                                     })) : [
                                         { label: 'Nenhuma categoria disponível', description: 'Adicione categorias para gerenciá-las aqui.', value: 'no_categories', default: true }
                                     ]
@@ -103,7 +104,7 @@ export default {
 
                 case "manage_products": {
                     
-                    const products = await client.db().collection('products').find().toArray();
+                    const products = await mongoClient.db().collection('products').find().toArray();
                     const categories = new Set(products.map(product => product.category));
 
                     const description = `### Atuais produtos:\n- ${Array.from(categories).map(category => `**${category || 'Sem categoria'}**\n  - ${products.filter(product => product.category == category).map(product => `**${product.emoji} ${product.name}** (\`${product.id}\`): R$${product.price.toFixed(2)}`).join('\n  - ')}`).join('\n- ') || 'Nenhum produto disponível.'}`;
@@ -170,7 +171,7 @@ export default {
                 };
 
                 case "manage_stores": {
-                    const stores = await client.db().collection('stores').find().toArray();
+                    const stores = await mongoClient.db().collection('stores').find().toArray();
 
                     await interaction.message.edit({
                         embeds: [
@@ -188,8 +189,9 @@ export default {
                                 .setOptions(
                                     stores.length>0 ? stores.map(store => ({
                                         label: store.name,
-                                        description: `ID: ${store.id}`,
-                                        value: store.id
+                                        description: store.id,
+                                        value: store.id,
+                                        emoji: store.emoji || undefined
                                     })) : [
                                         { label: 'Nenhuma loja disponível', description: 'Adicione lojas para gerenciá-las aqui.', value: 'no_stores', default: true }
                                     ]
@@ -216,7 +218,7 @@ export default {
                 };
                 
                 case "define_roles_by_spending": {
-                    const roles = await client.db().collection('roles_by_spending').find().toArray();
+                    const roles = await mongoClient.db().collection('roles_by_spending').find().toArray();
 
                     await interaction.message.edit({
                         embeds: [
@@ -253,7 +255,7 @@ export default {
             console.error(error);
             await interaction.channel.send({content: `Ocorreu um erro na execução dessa ação. ${error.message}.`, flags: [MessageFlags.Ephemeral]});
         } finally {
-            await client.close();
+            await mongoClient.close();
         }
     }
 

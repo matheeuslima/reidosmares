@@ -11,7 +11,7 @@ import { MongoClient, ServerApiVersion } from "mongodb";
 import botConfig from "../config.json" with { type: "json" };
 import "dotenv/config";
 
-const client = new MongoClient(process.env.MONGODB_URI, {
+const mongoClient = new MongoClient(process.env.MONGODB_URI, {
   serverApi: {
     version: ServerApiVersion.v1,
     strict: true,
@@ -26,14 +26,14 @@ export default {
      */
     async execute(interaction) {
         try {
-            await client.connect();
+            await mongoClient.connect();
 
             const embedCode = JSON.parse(interaction.fields.getTextInputValue('embed_code'));
             const editedEmbed = interaction.customId.split(":")[1];
             const messageContent = embedCode['content'];
             const messageEmbed = embedCode['embed'];
 
-            await client.db().collection("embeds").findOneAndUpdate(
+            await mongoClient.db().collection("embeds").findOneAndUpdate(
                 {id: editedEmbed},
                 {$set: {
                     id: editedEmbed,
@@ -84,7 +84,7 @@ export default {
             console.error(error);
             await interaction.reply({content: `Ocorreu um erro na execução dessa ação. ${error.message}.`, flags: [MessageFlags.Ephemeral]});
         } finally {
-            await client.close();
+            await mongoClient.close();
         }
     }
 

@@ -10,7 +10,7 @@ import {
 import { MongoClient, ServerApiVersion } from "mongodb";
 import "dotenv/config";
 
-const client = new MongoClient(process.env.MONGODB_URI, {
+const mongoClient = new MongoClient(process.env.MONGODB_URI, {
   serverApi: {
     version: ServerApiVersion.v1,
     strict: true,
@@ -35,13 +35,13 @@ export default {
      */
     async execute(interaction) {
         try {
-            await client.connect();
+            await mongoClient.connect();
 
             const targetUser = interaction.options.getUser('comprador') || interaction.user;
 
-            const user = await client.db().collection('users').findOne({ id: targetUser.id });
+            const user = await mongoClient.db().collection('users').findOne({ id: targetUser.id });
             //if(!user) return interaction.editReply({content: `${targetUser.username} ainda não fez nenhuma compra.`, flags: [MessageFlags.Ephemeral]});
-            const topUsers = await client.db().collection('users').find().sort({ totalSpent: -1 }).toArray();
+            const topUsers = await mongoClient.db().collection('users').find().sort({ totalSpent: -1 }).toArray();
             const userRank = topUsers.findIndex(u => u.id === targetUser.id) + 1;
             
             //if(userRank === 0) return interaction.editReply({content: `Você ainda não fez nenhuma compra.`, flags: [MessageFlags.Ephemeral]});
@@ -129,7 +129,7 @@ export default {
             console.error(error);
             await interaction.reply({content: `Ocorreu um erro na execução desse comando. ${error.message}.`, flags: [MessageFlags.Ephemeral]});
         } finally {
-            await client.close();
+            await mongoClient.close();
         }
     }
 }

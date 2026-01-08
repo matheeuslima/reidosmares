@@ -2,7 +2,7 @@ import { Colors, EmbedBuilder, MessageFlags, ModalSubmitInteraction } from "disc
 import { MongoClient, ServerApiVersion } from "mongodb";
 import "dotenv/config";
 
-const client = new MongoClient(process.env.MONGODB_URI, {
+const mongoClient = new MongoClient(process.env.MONGODB_URI, {
   serverApi: {
     version: ServerApiVersion.v1,
     strict: true,
@@ -17,7 +17,7 @@ export default {
      */
     async execute(interaction) {
         try {
-            await client.connect();
+            await mongoClient.connect();
             
             const categoryName = interaction.fields.getTextInputValue('category_name');
             const categoryId = interaction.fields.getTextInputValue('category_id');
@@ -26,11 +26,11 @@ export default {
             const categoryStore = interaction.fields.getTextInputValue('category_store');
             
             // verifica se o ID do produto já existe
-            const category = await client.db().collection("product_categories").findOne({id: interaction.customId.split(':')[1]});
+            const category = await mongoClient.db().collection("product_categories").findOne({id: interaction.customId.split(':')[1]});
             if(!category) return await interaction.reply({content: `Categoria de produtos não encontrada no banco de dados.`, flags: [MessageFlags.Ephemeral]});
 
             // atualiza no banco
-            await client.db().collection("product_categories").updateOne({id: interaction.customId.split(':')[1]}, {
+            await mongoClient.db().collection("product_categories").updateOne({id: interaction.customId.split(':')[1]}, {
                 $set: {
                     name: categoryName,
                     id: categoryId,
@@ -53,7 +53,7 @@ export default {
             console.error(error);
             await interaction.reply({content: `Ocorreu um erro na execução dessa ação. ${error.message}.`, flags: [MessageFlags.Ephemeral]});
         } finally {
-            await client.close();
+            await mongoClient.close();
         }
     }
 
