@@ -2,10 +2,12 @@ import {
     ActionRowBuilder,
     ButtonBuilder,
     ButtonStyle,
-    Collection,
+    Colors,
+    ContainerBuilder,
     MessageFlags,
     StringSelectMenuBuilder,
-    StringSelectMenuInteraction
+    StringSelectMenuInteraction,
+    TextDisplayBuilder
 } from "discord.js";
 import { MongoClient, ServerApiVersion } from "mongodb";
 import "dotenv/config";
@@ -28,7 +30,19 @@ export default {
         try {
             await mongoClient.connect();
             const products = (await mongoClient.db().collection('products').find({category: interaction.values[0]}).toArray()).filter(p => p.stock > 0);
-            if(!products?.length) return interaction.reply({content: `Não há produtos em estoque nessa categoria.`, flags: [MessageFlags.Ephemeral]})
+            if(!products?.length) return await interaction.reply({
+                flags: [MessageFlags.IsComponentsV2, MessageFlags.Ephemeral],
+                components: [
+                    new ContainerBuilder()
+                    .setAccentColor(Colors.Red)
+                    .addTextDisplayComponents([
+                        new TextDisplayBuilder()
+                        .setContent(`### ❌ Houve um erro ao tentar realizar essa ação`),
+                        new TextDisplayBuilder()
+                        .setContent(`\`\`\`Não há produtos em estoque nessa categoria.\`\`\``)
+                    ])
+                ]
+            });
 
             await interaction.deferReply().then(reply => reply?.delete());
 
@@ -68,10 +82,34 @@ export default {
             })
         } catch (error) {
             console.error(error);
-            await interaction.reply({content: `Ocorreu um erro na execução dessa ação. ${error.message}.`, flags: [MessageFlags.Ephemeral]});
+            
+            const errorContainer = new ContainerBuilder()
+            .setAccentColor(Colors.Red)
+            .addTextDisplayComponents([
+                new TextDisplayBuilder()
+                .setContent(`### ❌ Houve um erro ao tentar realizar essa ação`),
+                new TextDisplayBuilder()
+                .setContent(`\`\`\`${error.message}\`\`\``)
+            ]);
+            
+            if (!interaction.replied) {
+                await interaction.reply({
+                    flags: [MessageFlags.IsComponentsV2, MessageFlags.Ephemeral],
+                    components: [errorContainer]
+                });
+            } else if ((await interaction.fetchReply()).editable) {
+                interaction.editReply({
+                    flags: [MessageFlags.IsComponentsV2, MessageFlags.Ephemeral],
+                    components: [errorContainer]
+                });
+            } else {
+                interaction.channel.send({
+                    flags: [MessageFlags.IsComponentsV2, MessageFlags.Ephemeral],
+                    components: [errorContainer]
+                });
+            }
         } finally {
             await mongoClient.close();
-        }
+        };
     }
-
-}
+};

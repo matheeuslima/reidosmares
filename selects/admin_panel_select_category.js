@@ -1,4 +1,15 @@
-import { ActionRowBuilder, LabelBuilder, MessageFlags, ModalBuilder, StringSelectMenuBuilder, StringSelectMenuInteraction, TextInputBuilder, TextInputStyle } from "discord.js";
+import {
+    Colors,
+    ContainerBuilder,
+    LabelBuilder,
+    MessageFlags,
+    ModalBuilder,
+    StringSelectMenuBuilder,
+    StringSelectMenuInteraction,
+    TextDisplayBuilder,
+    TextInputBuilder,
+    TextInputStyle
+} from "discord.js";
 import { MongoClient, ServerApiVersion } from "mongodb";
 import "dotenv/config";
 
@@ -19,7 +30,19 @@ export default {
         try {
             await mongoClient.connect();
             const category = await mongoClient.db().collection('product_categories').findOne({id: interaction.values[0]});
-            if(!category) return interaction.reply({content: `Categoria de produtos não encontrada no banco de dados.`, flags: [MessageFlags.Ephemeral]});
+            if(!category) return await interaction.reply({
+                flags: [MessageFlags.IsComponentsV2, MessageFlags.Ephemeral],
+                components: [
+                    new ContainerBuilder()
+                    .setAccentColor(Colors.Red)
+                    .addTextDisplayComponents([
+                        new TextDisplayBuilder()
+                        .setContent(`### ❌ Houve um erro ao tentar realizar essa ação`),
+                        new TextDisplayBuilder()
+                        .setContent(`\`\`\`Categoria de produtos não encontrada no banco de dados.\`\`\``)
+                    ])
+                ]
+            });
             
             await interaction.showModal(
                 new ModalBuilder()
@@ -71,7 +94,6 @@ export default {
                     .setStringSelectMenuComponent(
                         new StringSelectMenuBuilder()
                         .setCustomId('category_store')
-                        .setPlaceholder(`${category.store || 'Nenhuma'}`.substring(0, 100))
                         .addOptions((await mongoClient.db().collection('stores').find().toArray()).map(store => {
                             return {
                                 label: store.name,
@@ -86,10 +108,34 @@ export default {
             )
         } catch (error) {
             console.error(error);
-            await interaction.reply({content: `Ocorreu um erro na execução dessa ação. ${error.message}.`, flags: [MessageFlags.Ephemeral]});
+            
+            const errorContainer = new ContainerBuilder()
+            .setAccentColor(Colors.Red)
+            .addTextDisplayComponents([
+                new TextDisplayBuilder()
+                .setContent(`### ❌ Houve um erro ao tentar realizar essa ação`),
+                new TextDisplayBuilder()
+                .setContent(`\`\`\`${error.message}\`\`\``)
+            ]);
+            
+            if (!interaction.replied) {
+                await interaction.reply({
+                    flags: [MessageFlags.IsComponentsV2, MessageFlags.Ephemeral],
+                    components: [errorContainer]
+                });
+            } else if ((await interaction.fetchReply()).editable) {
+                interaction.editReply({
+                    flags: [MessageFlags.IsComponentsV2, MessageFlags.Ephemeral],
+                    components: [errorContainer]
+                });
+            } else {
+                interaction.channel.send({
+                    flags: [MessageFlags.IsComponentsV2, MessageFlags.Ephemeral],
+                    components: [errorContainer]
+                });
+            }
         } finally {
             await mongoClient.close();
-        }
+        };
     }
-
-}
+};

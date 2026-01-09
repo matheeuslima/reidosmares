@@ -89,19 +89,31 @@ export default {
 		} catch (error) {
 			console.error(error);
 
-			await interaction.reply({
-                flags: [MessageFlags.IsComponentsV2, MessageFlags.Ephemeral],
-                components: [
-                    new ContainerBuilder()
-                    .setAccentColor(Colors.Red)
-                    .addTextDisplayComponents([
-                        new TextDisplayBuilder()
-                        .setContent(`### ❌ Houve um erro ao tentar realizar essa ação`),
-                        new TextDisplayBuilder()
-                        .setContent(`\`\`\`${error.message}\`\`\``)
-                    ])
-                ]
-            });
+			const errorContainer = new ContainerBuilder()
+            .setAccentColor(Colors.Red)
+            .addTextDisplayComponents([
+                new TextDisplayBuilder()
+                .setContent(`### ❌ Houve um erro ao tentar realizar essa ação`),
+                new TextDisplayBuilder()
+                .setContent(`\`\`\`${error.message}\`\`\``)
+            ]);
+            
+            if (!interaction.replied) {
+                await interaction.reply({
+                    flags: [MessageFlags.IsComponentsV2, MessageFlags.Ephemeral],
+                    components: [errorContainer]
+                });
+            } else if ((await interaction.fetchReply()).editable) {
+                interaction.editReply({
+                    flags: [MessageFlags.IsComponentsV2, MessageFlags.Ephemeral],
+                    components: [errorContainer]
+                });
+            } else {
+                interaction.channel.send({
+                    flags: [MessageFlags.IsComponentsV2, MessageFlags.Ephemeral],
+                    components: [errorContainer]
+                });
+            }
 		} finally {
 			await mongoClient.close();
 		};

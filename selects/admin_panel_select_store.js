@@ -1,4 +1,14 @@
-import { ActionRowBuilder, LabelBuilder, MessageFlags, ModalBuilder, StringSelectMenuInteraction, TextInputBuilder, TextInputStyle } from "discord.js";
+import {
+    Colors,
+    ContainerBuilder,
+    LabelBuilder,
+    MessageFlags,
+    ModalBuilder,
+    StringSelectMenuInteraction,
+    TextDisplayBuilder,
+    TextInputBuilder,
+    TextInputStyle
+} from "discord.js";
 import { MongoClient, ServerApiVersion } from "mongodb";
 import "dotenv/config";
 
@@ -19,7 +29,19 @@ export default {
         try {
             await mongoClient.connect();
             const store = await mongoClient.db().collection('stores').findOne({id: interaction.values[0]});
-            if(!store) return interaction.reply({content: `Loja não encontrada no banco de dados.`, flags: [MessageFlags.Ephemeral]});
+            if(!store) return await interaction.reply({
+                flags: [MessageFlags.IsComponentsV2, MessageFlags.Ephemeral],
+                components: [
+                    new ContainerBuilder()
+                    .setAccentColor(Colors.Red)
+                    .addTextDisplayComponents([
+                        new TextDisplayBuilder()
+                        .setContent(`### ❌ Houve um erro ao tentar realizar essa ação`),
+                        new TextDisplayBuilder()
+                        .setContent(`\`\`\`Loja não encontrada no banco de dados.\`\`\``)
+                    ])
+                ]
+            });
             
             await interaction.showModal(
                 new ModalBuilder()
@@ -60,10 +82,34 @@ export default {
             )
         } catch (error) {
             console.error(error);
-            await interaction.reply({content: `Ocorreu um erro na execução dessa ação. ${error.message}.`, flags: [MessageFlags.Ephemeral]});
+            
+            const errorContainer = new ContainerBuilder()
+            .setAccentColor(Colors.Red)
+            .addTextDisplayComponents([
+                new TextDisplayBuilder()
+                .setContent(`### ❌ Houve um erro ao tentar realizar essa ação`),
+                new TextDisplayBuilder()
+                .setContent(`\`\`\`${error.message}\`\`\``)
+            ]);
+            
+            if (!interaction.replied) {
+                await interaction.reply({
+                    flags: [MessageFlags.IsComponentsV2, MessageFlags.Ephemeral],
+                    components: [errorContainer]
+                });
+            } else if ((await interaction.fetchReply()).editable) {
+                interaction.editReply({
+                    flags: [MessageFlags.IsComponentsV2, MessageFlags.Ephemeral],
+                    components: [errorContainer]
+                });
+            } else {
+                interaction.channel.send({
+                    flags: [MessageFlags.IsComponentsV2, MessageFlags.Ephemeral],
+                    components: [errorContainer]
+                });
+            }
         } finally {
             await mongoClient.close();
-        }
+        };
     }
-
-}
+};
