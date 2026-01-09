@@ -12,7 +12,7 @@ import fs from "fs";
 import path from "path";
 import projectPackage from "../package.json" with { type: "json" };
 import { MongoClient, ServerApiVersion } from "mongodb";
-import client from "../src/Client.js";
+import * as Client from "../src/Client.js";
 import "dotenv/config";
 
 const mongoClient = new MongoClient(process.env.MONGODB_URI, {

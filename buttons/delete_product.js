@@ -1,15 +1,17 @@
 import {
-    ActionRowBuilder,
     ButtonInteraction,
+    Colors,
+    ContainerBuilder,
+    LabelBuilder,
     MessageFlags,
     ModalBuilder,
-    TextInputBuilder,
-    TextInputStyle,
+    StringSelectMenuBuilder,
+    TextDisplayBuilder,
 } from "discord.js";
 import { MongoClient, ServerApiVersion } from "mongodb";
 import "dotenv/config";
 
-const client = new MongoClient(process.env.MONGODB_URI, {
+const mongoClient = new MongoClient(process.env.MONGODB_URI, {
   serverApi: {
     version: ServerApiVersion.v1,
     strict: true,
@@ -24,34 +26,94 @@ export default {
      */
     async execute(interaction) {
         try {
-            await client.connect();
+            await mongoClient.connect();
 
-            const products = await client.db().collection('products').find().toArray();
-            if(!products?.length) return interaction.reply({content: `Não há produtos para excluir.`, flags: [MessageFlags.Ephemeral]})
+            // pega os produtos e dá erro se não tiver
+            const products = await mongoClient.db().collection('products').find().toArray();
+            if(!products?.length) return await interaction.reply({
+                flags: [MessageFlags.Ephemeral, MessageFlags.IsComponentsV2],
+                components: [
+                    new ContainerBuilder()
+                    .setAccentColor(Colors.Red)
+                    .addTextDisplayComponents([
+                        new TextDisplayBuilder()
+                        .setContent(`### ❌ Houve um erro ao tentar realizar essa ação`),
+                        new TextDisplayBuilder()
+                        .setContent(`\`\`\`Não há produtos para excluir.\`\`\``)
+                    ])
+                ]
+            });
 
-            interaction.showModal(
-                new ModalBuilder()
-                .setCustomId(`delete_product`)
-                .setTitle('Qual produto vai apagar?')
-                .addComponents(
-                    new ActionRowBuilder()
-                    .addComponents(
-                        new TextInputBuilder()
-                        .setCustomId(`product_id`)
-                        .setLabel('ID do Produto')
-                        .setStyle(TextInputStyle.Short)
-                        .setPlaceholder(`id_do_produto`)
-                        .setRequired(true)
-                    )
-                )
-            )
+            // início do modal
+            const deletionModal = new ModalBuilder()
+            .setCustomId(`delete_product`)
+            .setTitle('Qual produto vai apagar?')
+            .addTextDisplayComponents(
+                new TextDisplayBuilder()
+                .setContent(`⚠️ Por limitações do Discord, tem um menu de seleção para cada 25 produtos. No entanto, o bot só deletará **um** produto, então escolha apenas em um dos menus.`)
+            );
             
+            // transformar os produtos em opção de select menu
+            const productOptions = products.map(product => {
+                return {
+                    label: product.name,
+                    description: `ID: ${product.id} | R$${product.price.toFixed(2)} | Estoque: ${product.stock || 'Sem estoque'}`,
+                    value: product.id,
+                    emoji: product.emoji || undefined,
+                }
+            });
+
+            // número de select menus
+            const productSelectAmount = Math.ceil(productOptions.length/25);
+
+            // adiciona os select menus paginados
+            for (let i = 0; i < productSelectAmount; i++) {
+                deletionModal.addLabelComponents(
+                    new LabelBuilder()
+                    .setLabel(`Produto a ser excluído (${i*25+1}-${ (i+1)*25 < productOptions.length ? (i+1)*25 : productOptions.length })`)
+                    .setStringSelectMenuComponent(
+                        new StringSelectMenuBuilder()
+                        .setCustomId(`product_id:${i}`)
+                        .setRequired(false)
+                        .setOptions(
+                            productOptions.slice(i*25, (i+1)*25-1)
+                        )
+                    )
+                );
+            };
+
+            // exibe o modal finalizado
+            await interaction.showModal(deletionModal);
         } catch (error) {
             console.error(error);
-            await interaction.editReply({content: `Ocorreu um erro na execução dessa ação. ${error.message}.`});
-        } finally {
-            await client.close();
-        }
-    }
 
-}
+            const errorContainer = new ContainerBuilder()
+            .setAccentColor(Colors.Red)
+            .addTextDisplayComponents([
+                new TextDisplayBuilder()
+                .setContent(`### ❌ Houve um erro ao tentar realizar essa ação`),
+                new TextDisplayBuilder()
+                .setContent(`\`\`\`${error.message}\`\`\``)
+            ]);
+            
+            if (!interaction.replied) {
+                await interaction.reply({
+                    flags: [MessageFlags.IsComponentsV2, MessageFlags.Ephemeral],
+                    components: [errorContainer]
+                });
+            } else if ((await interaction.fetchReply()).editable) {
+                await interaction.editReply({
+                    flags: [MessageFlags.IsComponentsV2, MessageFlags.Ephemeral],
+                    components: [errorContainer]
+                });
+            } else {
+                await interaction.channel.send({
+                    flags: [MessageFlags.IsComponentsV2, MessageFlags.Ephemeral],
+                    components: [errorContainer]
+                });
+            }
+        } finally {
+            await mongoClient.close();
+        };
+    }
+};

@@ -129,7 +129,7 @@ async function handleButton(interaction) {
                 .setFields([
                     { name: `👤  Usuário`, value: `<@${interaction.user.id}> (${interaction.user.id})` },
                     { name: `🤖  Informações`, value: `\`\`\`json\n${inspect(interaction.component?.toJSON(), {depth: 0}).slice(0, 990)}\n\`\`\`` },
-                    { name: `💬  Canal`, value: `${interaction.message.url} (${interaction.channel.id})` }
+                    { name: `💬  Canal`, value: `${interaction.message.url} (${interaction.channelId})` }
                 ])
                 .setThumbnail(interaction.user.avatarURL({ dynamic: true }))
                 .setColor(Colors.Yellow)

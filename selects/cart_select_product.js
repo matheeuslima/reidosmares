@@ -5,7 +5,10 @@ import {
     ModalBuilder,
     TextInputBuilder,
     TextInputStyle,
-    ActionRowBuilder
+    Colors,
+    ContainerBuilder,
+    TextDisplayBuilder,
+    LabelBuilder
 } from "discord.js";
 import client from "../src/Client.js";
 import { MongoClient, ServerApiVersion } from "mongodb";
@@ -35,10 +38,52 @@ export default {
 
             if (!ticket.cart) ticket.cart = [];
 
-            if(ticket.cart.length + products.length > 25) return await interaction.reply({ content: 'Você atingiu o limite máximo de 25 produtos no carrinho.', flags: [MessageFlags.Ephemeral] });
-            if(ticket.cart.find(p => products.map(pr => pr.id).includes(p.id))) return await interaction.reply({ content: 'Você já adicionou um ou mais desses produtos ao carrinho.', flags: [MessageFlags.Ephemeral] });
-            if(products.filter(p => p.stock).length==0)  return await interaction.reply({ content: 'O estoque deste(s) produto(s) esgotou.', flags: [MessageFlags.Ephemeral] });
+            // mais de 25 no carrinho
+            if(ticket.cart.length + products.length > 25) return await interaction.reply({
+                flags: [MessageFlags.IsComponentsV2, MessageFlags.Ephemeral],
+                components: [
+                    new ContainerBuilder()
+                    .setAccentColor(Colors.Red)
+                    .addTextDisplayComponents([
+                        new TextDisplayBuilder()
+                        .setContent(`### ❌ Houve um erro ao tentar realizar essa ação`),
+                        new TextDisplayBuilder()
+                        .setContent(`\`\`\`Você atingiu o limite máximo de 25 produtos no carrinho.\`\`\``)
+                    ])
+                ]
+            });
 
+            // produto repetido
+            if(ticket.cart.find(p => products.map(pr => pr.id).includes(p.id))) return await interaction.reply({
+                flags: [MessageFlags.IsComponentsV2, MessageFlags.Ephemeral],
+                components: [
+                    new ContainerBuilder()
+                    .setAccentColor(Colors.Red)
+                    .addTextDisplayComponents([
+                        new TextDisplayBuilder()
+                        .setContent(`### ❌ Houve um erro ao tentar realizar essa ação`),
+                        new TextDisplayBuilder()
+                        .setContent(`\`\`\`Você já adicionou um ou mais destes produtos em seu carrinho anteriormente.\`\`\``)
+                    ])
+                ]
+            });
+
+            // sem estoque
+            if(products.filter(p => p.stock).length==0) return await interaction.reply({
+                flags: [MessageFlags.IsComponentsV2, MessageFlags.Ephemeral],
+                components: [
+                    new ContainerBuilder()
+                    .setAccentColor(Colors.Red)
+                    .addTextDisplayComponents([
+                        new TextDisplayBuilder()
+                        .setContent(`### ❌ Houve um erro ao tentar realizar essa ação`),
+                        new TextDisplayBuilder()
+                        .setContent(`\`\`\`O estoque deste(s) produto(s) está esgotado.\`\`\``)
+                    ])
+                ]
+            });
+
+            // modal
             const modal = new ModalBuilder()
             .setCustomId(`cart_set_product_amount:${products.filter(p => p.stock).map(p => p.id).join(",")}`)
             .setTitle('Defina a quantidade de cada produto');
@@ -46,7 +91,6 @@ export default {
             products.filter(p => p.stock).forEach(product => {
                 const input = new TextInputBuilder()
                 .setCustomId(`amount_${product.id}`)
-                .setLabel(`Quantidade de ${product.name}`)
                 .setStyle(TextInputStyle.Short)
                 .setMinLength(1)
                 .setMaxLength(3)
@@ -54,7 +98,7 @@ export default {
                 .setValue('1')
                 .setRequired(true);
 
-                modal.addComponents(new ActionRowBuilder().addComponents(input));
+                modal.addLabelComponents(new LabelBuilder().setLabel(`Quantidade de ${product.name}`).setTextInputComponent(input));
             });
 
             await interaction.showModal(modal);
@@ -62,8 +106,31 @@ export default {
             // O restante do fluxo (adicionar ao carrinho) deve ser feito no handler do modal
         } catch (error) {
             console.error(error);
+            
+            const errorContainer = new ContainerBuilder()
+            .setAccentColor(Colors.Red)
+            .addTextDisplayComponents([
+                new TextDisplayBuilder()
+                .setContent(`### ❌ Houve um erro ao tentar realizar essa ação`),
+                new TextDisplayBuilder()
+                .setContent(`\`\`\`${error.message}\`\`\``)
+            ]);
+            
             if (!interaction.replied) {
-                await interaction.reply({ content: `Ocorreu um erro na execução dessa ação. ${error.message}.`, flags: [MessageFlags.Ephemeral] });
+                await interaction.reply({
+                    flags: [MessageFlags.IsComponentsV2, MessageFlags.Ephemeral],
+                    components: [errorContainer]
+                });
+            } else if ((await interaction.fetchReply()).editable) {
+                await interaction.editReply({
+                    flags: [MessageFlags.IsComponentsV2, MessageFlags.Ephemeral],
+                    components: [errorContainer]
+                });
+            } else {
+                await interaction.channel.send({
+                    flags: [MessageFlags.IsComponentsV2, MessageFlags.Ephemeral],
+                    components: [errorContainer]
+                });
             }
         } finally {
             await mongoClient.close();

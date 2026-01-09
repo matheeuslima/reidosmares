@@ -1,13 +1,21 @@
 import {
+    ActionRowBuilder,
+    ButtonBuilder,
+    ButtonStyle,
     Colors,
-    EmbedBuilder,
+    ContainerBuilder,
     MessageFlags,
     ModalSubmitInteraction,
+    SectionBuilder,
+    SeparatorBuilder,
+    SeparatorSpacingSize,
+    StringSelectMenuBuilder,
+    TextDisplayBuilder,
 } from "discord.js";
 import { MongoClient, ServerApiVersion } from "mongodb";
 import "dotenv/config";
 
-const client = new MongoClient(process.env.MONGODB_URI, {
+const mongoClient = new MongoClient(process.env.MONGODB_URI, {
   serverApi: {
     version: ServerApiVersion.v1,
     strict: true,
@@ -22,45 +30,150 @@ export default {
      */
     async execute(interaction) {
         try {
-            await client.connect();
+            await mongoClient.connect();
 
             const productName = interaction.fields.getTextInputValue('product_name');
             const productId = interaction.fields.getTextInputValue('product_id');
             const productEmoji = interaction.fields.getTextInputValue('product_emoji');
-            const productCategory  = interaction.fields.getTextInputValue('product_category');
+            const productCategory  = interaction.fields.getStringSelectValues('product_category')[0];
             const productPrice = interaction.fields.getTextInputValue('product_price');
 
             // limite de 25 produtos por categoria
-            if((await client.db().collection("products").countDocuments({category: productCategory})) >= 25) return await interaction.reply({content: `A categoria "${productCategory}" já atingiu o limite máximo de 25 produtos.`, flags: [MessageFlags.Ephemeral]});
+            if((await mongoClient.db().collection("products").countDocuments({category: productCategory})) >= 25) return await interaction.reply({content: `A categoria "${productCategory}" já atingiu o limite máximo de 25 produtos.`, flags: [MessageFlags.Ephemeral]});
             
             // verifica se o ID do produto já existe
-            if(await client.db().collection("products").findOne({id: productId})) return await interaction.reply({content: `Já existe um produto com o ID "${productId}".`, flags: [MessageFlags.Ephemeral]});
+            if(await mongoClient.db().collection("products").findOne({id: productId})) return await interaction.reply({content: `Já existe um produto com o ID "${productId}".`, flags: [MessageFlags.Ephemeral]});
 
             // insere no banco
-            await client.db().collection("products").insertOne({
+            await mongoClient.db().collection("products").insertOne({
                 name: productName,
                 id: productId,
                 category: productCategory,
                 emoji: productEmoji,
                 price: parseFloat(productPrice),
                 stock: 0
-            })
+            });
 
+            // responder o cara
             await interaction.reply({
-                content: `Produto "${productId}" adicionado com sucesso.`,
-                embeds: [
-                    new EmbedBuilder()
-                    .setColor(Colors.Green)
-                    .setDescription(`# ${productEmoji} ${productName}\n- Preço: R$${parseFloat(productPrice).toFixed(2)}\n- Categoria: ${productCategory}`)
-                ],
-                flags: [MessageFlags.Ephemeral]
+                flags: [MessageFlags.IsComponentsV2],
+                components: [
+                    new ContainerBuilder()
+                    .setAccentColor(Colors.Green)
+                    .addTextDisplayComponents([
+                        new TextDisplayBuilder()
+                        .setContent(`# Novo produto criado`),
+                        new TextDisplayBuilder()
+                        .setContent(`## ${productEmoji} ${productName}\n- **ID:** \`${productId}\`\n- **Preço:** \`R$${parseFloat(productPrice).toFixed(2)}\`\n- **Categoria:** \`${productCategory}\``)
+                    ])
+                ]
+            });
+
+            // atualizar o painel
+            const products = await mongoClient.db().collection('products').find().toArray();
+            const categories = await mongoClient.db().collection('product_categories').find().toArray();
+            const stores = await mongoClient.db().collection('stores').find().toArray();
+
+            await interaction.message.edit({
+                flags: [MessageFlags.IsComponentsV2],
+                components: [
+                    new ContainerBuilder()
+                    .setAccentColor(Colors.Blurple)
+                    .addSectionComponents(
+                        new SectionBuilder()
+                        .addTextDisplayComponents(
+                            new TextDisplayBuilder()
+                            .setContent('# Painel administrativo')
+                        )
+                        .setButtonAccessory(
+                            new ButtonBuilder()
+                            .setCustomId('reset_panel')
+                            .setLabel('Início')
+                            .setStyle(ButtonStyle.Secondary)
+                            .setEmoji('🏠')
+                        )
+                    )
+                    .addSeparatorComponents(
+                        new SeparatorBuilder()
+                        .setSpacing(SeparatorSpacingSize.Large)
+                    )
+                    .addTextDisplayComponents(
+                        new TextDisplayBuilder()
+                        .setContent(`${stores.map(store => `## ${store.id}\n` +
+                            (categories.filter(cat => cat.store === store.id).map(cat => `### ${cat.id}\n` +
+                                (products.filter(prod => prod.category === cat.id).map(prod => `- ${prod.emoji} **${prod.id}**︱\`R$${prod.price.toFixed(2)}\`︱\`${prod.stock <= 0 ? `Esgotado (${prod.stock})` : prod.stock >= 1_000_000 ? `∞ (${prod.stock})` : prod.stock}\`\n`).join('') || '- Nenhum produto disponível.\n')
+                            ).join('') || '- Nenhuma categoria cadastrada.\n')
+                        ).join('\n') || 'Nenhuma loja cadastrada.'}`)
+                    )
+                    .addSeparatorComponents(
+                        new SeparatorBuilder()
+                        .setSpacing(SeparatorSpacingSize.Large)
+                    )
+                    .addActionRowComponents([
+                        new ActionRowBuilder()
+                        .setComponents([
+                            new StringSelectMenuBuilder()
+                            .setPlaceholder('Selecionar produto pra editar...')
+                            .setCustomId('admin_panel_select_product')
+                            .setOptions(
+                                products.length>0 ? products.map(product => ({
+                                    label: product.name,
+                                    description: `ID: ${product.id} | R$${product.price.toFixed(2)} | Estoque: ${product.stock || 'Sem estoque'}`,
+                                    value: product.id,
+                                    emoji: product.emoji
+                                })).slice(0, 25) : [
+                                    { label: 'Nenhum produto disponível', description: 'Adicione produtos para gerenciá-los aqui.', value: 'no_products', default: true }
+                                ]
+                            )
+                            .setMinValues(1)
+                            .setMaxValues(1),
+                        ]),
+                        new ActionRowBuilder()
+                        .setComponents([
+                            new ButtonBuilder()
+                            .setCustomId('add_product')
+                            .setEmoji('➕')
+                            .setLabel('Adicionar novo produto')
+                            .setStyle(ButtonStyle.Success),
+                            new ButtonBuilder()
+                            .setCustomId('delete_product')
+                            .setEmoji('🗑️')
+                            .setLabel('Excluir um produto')
+                            .setStyle(ButtonStyle.Danger),
+                        ])
+                    ])
+                ]
             });
         } catch (error) {
             console.error(error);
-            await interaction.reply({content: `Ocorreu um erro na execução dessa ação. ${error.message}.`, flags: [MessageFlags.Ephemeral]});
-        } finally {
-            await client.close();
-        }
-    }
 
-}
+            const errorContainer = new ContainerBuilder()
+            .setAccentColor(Colors.Red)
+            .addTextDisplayComponents([
+                new TextDisplayBuilder()
+                .setContent(`### ❌ Houve um erro ao tentar realizar essa ação`),
+                new TextDisplayBuilder()
+                .setContent(`\`\`\`${error.message}\`\`\``)
+            ]);
+            
+            if (!interaction.replied) {
+                await interaction.reply({
+                    flags: [MessageFlags.IsComponentsV2, MessageFlags.Ephemeral],
+                    components: [errorContainer]
+                });
+            } else if ((await interaction.fetchReply()).editable) {
+                await interaction.editReply({
+                    flags: [MessageFlags.IsComponentsV2, MessageFlags.Ephemeral],
+                    components: [errorContainer]
+                });
+            } else {
+                await interaction.channel.send({
+                    flags: [MessageFlags.IsComponentsV2, MessageFlags.Ephemeral],
+                    components: [errorContainer]
+                });
+            }
+        } finally {
+            await mongoClient.close();
+        };
+    }
+};

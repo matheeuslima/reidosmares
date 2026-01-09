@@ -1,15 +1,17 @@
 import {
-    ActionRowBuilder,
     ButtonInteraction,
+    Colors,
+    ContainerBuilder,
+    LabelBuilder,
     MessageFlags,
     ModalBuilder,
-    TextInputBuilder,
-    TextInputStyle,
+    StringSelectMenuBuilder,
+    TextDisplayBuilder,
 } from "discord.js";
 import { MongoClient, ServerApiVersion } from "mongodb";
 import "dotenv/config";
 
-const client = new MongoClient(process.env.MONGODB_URI, {
+const mongoClient = new MongoClient(process.env.MONGODB_URI, {
   serverApi: {
     version: ServerApiVersion.v1,
     strict: true,
@@ -24,34 +26,79 @@ export default {
      */
     async execute(interaction) {
         try {
-            await client.connect();
+            await mongoClient.connect();
 
-            const categories = await client.db().collection('product_categories').find().toArray();
-            if(!categories?.length) return interaction.reply({content: `Não há categorias para excluir.`, flags: [MessageFlags.Ephemeral]})
+            const categories = await mongoClient.db().collection('product_categories').find().toArray();
+            if(!categories?.length) return await interaction.reply({
+                flags: [MessageFlags.Ephemeral, MessageFlags.IsComponentsV2],
+                components: [
+                    new ContainerBuilder()
+                    .setAccentColor(Colors.Red)
+                    .addTextDisplayComponents([
+                        new TextDisplayBuilder()
+                        .setContent(`### ❌ Houve um erro ao tentar realizar essa ação`),
+                        new TextDisplayBuilder()
+                        .setContent(`\`\`\`Não há categorias registradas.\`\`\``)
+                    ])
+                ]
+            });
 
-            interaction.showModal(
+            await interaction.showModal(
                 new ModalBuilder()
                 .setCustomId(`delete_product_category`)
                 .setTitle('Qual categoria de produto vai apagar?')
-                .addComponents(
-                    new ActionRowBuilder()
-                    .addComponents(
-                        new TextInputBuilder()
+                .addLabelComponents(
+                    new LabelBuilder()
+                    .setLabel('Categoria a ser excluída')
+                    .setStringSelectMenuComponent(
+                        new StringSelectMenuBuilder()
                         .setCustomId(`category_id`)
-                        .setLabel('ID da Categoria')
-                        .setStyle(TextInputStyle.Short)
-                        .setPlaceholder(`Um dos seguintes: ${categories.map(category => category.id).join(', ')}`.substring(0, 100))
                         .setRequired(true)
+                        .setOptions(categories.map(category => {
+                            return {
+                                label: `${category.name} (${category.id})`,
+                                description: `${category.description} | ${category.store}`,
+                                value: category.id,
+                                emoji: category.emoji || undefined,
+                            }
+                        }))
                     )
                 )
+                .addTextDisplayComponents(
+                    new TextDisplayBuilder()
+                    .setContent(`⚠️ Apagar essa categoria também excluirá todos os produtos pertencentes a ela.`)
+                )
             )
-            
         } catch (error) {
             console.error(error);
-            await interaction.editReply({content: `Ocorreu um erro na execução dessa ação. ${error.message}.`});
-        } finally {
-            await client.close();
-        }
-    }
 
-}
+            const errorContainer = new ContainerBuilder()
+            .setAccentColor(Colors.Red)
+            .addTextDisplayComponents([
+                new TextDisplayBuilder()
+                .setContent(`### ❌ Houve um erro ao tentar realizar essa ação`),
+                new TextDisplayBuilder()
+                .setContent(`\`\`\`${error.message}\`\`\``)
+            ]);
+            
+            if (!interaction.replied) {
+                await interaction.reply({
+                    flags: [MessageFlags.IsComponentsV2, MessageFlags.Ephemeral],
+                    components: [errorContainer]
+                });
+            } else if ((await interaction.fetchReply()).editable) {
+                await interaction.editReply({
+                    flags: [MessageFlags.IsComponentsV2, MessageFlags.Ephemeral],
+                    components: [errorContainer]
+                });
+            } else {
+                await interaction.channel.send({
+                    flags: [MessageFlags.IsComponentsV2, MessageFlags.Ephemeral],
+                    components: [errorContainer]
+                });
+            }
+        } finally {
+            await mongoClient.close();
+        };
+    }
+};

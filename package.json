@@ -1,6 +1,6 @@
 {
   "name": "reidosmares",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "description": "Bot para gerência da uma loja do Donu",
   "main": "index.js",
   "scripts": {
@@ -22,9 +22,9 @@
   "homepage": "https://github.com/renatoyzy/reidosmares#readme",
   "type": "module",
   "dependencies": {
-    "discord.js": "^14.23.2",
-    "dotenv": "^17.2.1",
-    "mongodb": "^6.19.0",
+    "discord.js": "^14.25.1",
+    "dotenv": "^17.2.3",
+    "mongodb": "^7.0.0",
     "node-cron": "^4.2.1",
     "util": "^0.12.5"
   }

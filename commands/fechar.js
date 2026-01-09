@@ -23,15 +23,18 @@ export default {
      * @param {ChatInputCommandInteraction} interaction 
      */
     async execute(interaction) {
-        if(interaction.channelId != botConfig.channel.newCart) return await interaction.editReply({
+        // apenas em carrinhos
+        if(interaction.channel.parentId != botConfig.channel.newCart) return await interaction.editReply({
             flags: [MessageFlags.IsComponentsV2, MessageFlags.Ephemeral],
             components: [
                 new ContainerBuilder()
-                .addTextDisplayComponents(
-                    new TextDisplayBuilder()
-                    .setContent("❌ Você só pode usar esse comando no canal de criação de carrinhos.")
-                )
-                .setAccentColor(Colors.DarkRed)
+                .addTextDisplayComponents([
+                        new TextDisplayBuilder()
+                        .setContent(`### ❌ Houve um erro ao tentar realizar essa ação`),
+                        new TextDisplayBuilder()
+                        .setContent(`\`\`\`Você só pode usar esse comando em um carrinho.\`\`\``)
+                    ])
+                .setAccentColor(Colors.Red)
             ]
         });
 
@@ -41,9 +44,34 @@ export default {
             interaction.channel.delete();
         } catch (error) {
             console.error(error);
-            await interaction.editReply({content: `Ocorreu um erro na execução desse comando. ${error.message}.`, flags: [MessageFlags.Ephemeral]});
+
+            const errorContainer = new ContainerBuilder()
+            .setAccentColor(Colors.Red)
+            .addTextDisplayComponents([
+                new TextDisplayBuilder()
+                .setContent(`### ❌ Houve um erro ao tentar realizar essa ação`),
+                new TextDisplayBuilder()
+                .setContent(`\`\`\`${error.message}\`\`\``)
+            ]);
+            
+            if (!interaction.replied) {
+                await interaction.reply({
+                    flags: [MessageFlags.IsComponentsV2, MessageFlags.Ephemeral],
+                    components: [errorContainer]
+                });
+            } else if ((await interaction.fetchReply()).editable) {
+                await interaction.editReply({
+                    flags: [MessageFlags.IsComponentsV2, MessageFlags.Ephemeral],
+                    components: [errorContainer]
+                });
+            } else {
+                await interaction.channel.send({
+                    flags: [MessageFlags.IsComponentsV2, MessageFlags.Ephemeral],
+                    components: [errorContainer]
+                });
+            }
         } finally {
             await client.close();
-        }
+        };
     }
-}
+};

@@ -3,15 +3,16 @@ import {
     ButtonBuilder,
     ButtonStyle,
     Colors,
-    EmbedBuilder,
+    ContainerBuilder,
     MessageFlags,
     ModalSubmitInteraction,
+    TextDisplayBuilder,
 } from "discord.js";
 import { MongoClient, ServerApiVersion } from "mongodb";
 import botConfig from "../config.json" with { type: "json" };
 import "dotenv/config";
 
-const client = new MongoClient(process.env.MONGODB_URI, {
+const mongoClient = new MongoClient(process.env.MONGODB_URI, {
   serverApi: {
     version: ServerApiVersion.v1,
     strict: true,
@@ -26,14 +27,15 @@ export default {
      */
     async execute(interaction) {
         try {
-            await client.connect();
+            await mongoClient.connect();
 
             const embedCode = JSON.parse(interaction.fields.getTextInputValue('embed_code'));
             const editedEmbed = interaction.customId.split(":")[1];
             const messageContent = embedCode['content'];
             const messageEmbed = embedCode['embed'];
 
-            await client.db().collection("embeds").findOneAndUpdate(
+            // registrar na db
+            await mongoClient.db().collection("embeds").findOneAndUpdate(
                 {id: editedEmbed},
                 {$set: {
                     id: editedEmbed,
@@ -42,7 +44,9 @@ export default {
                 {upsert: true, returnDocument: 'after'}
             )
 
+            // cada embed faz algo
             switch (editedEmbed) {
+                // enviar no chat de criar
                 case "new_cart": {
                     await interaction.guild.channels.cache.get(botConfig.channel.newCart).send({
                         content: messageContent,
@@ -70,22 +74,48 @@ export default {
                 }
             }
 
+            // responder o cara
             await interaction.reply({
-                content: messageContent,
-                embeds: [
-                    new EmbedBuilder()
-                    .setColor(Colors.Green)
-                    .setDescription(`${editedEmbed} alterado com sucesso`),
-                    messageEmbed
-                ],
-                flags: [MessageFlags.Ephemeral]
+                flags: [MessageFlags.IsComponentsV2],
+                components: [
+                    new ContainerBuilder()
+                    .setAccentColor(Colors.Green)
+                    .addTextDisplayComponents(
+                        new TextDisplayBuilder()
+                        .setContent(`### 📝 Embed ${editedEmbed} alterado com sucesso`)
+                    )
+                ]
             });
         } catch (error) {
             console.error(error);
-            await interaction.reply({content: `Ocorreu um erro na execução dessa ação. ${error.message}.`, flags: [MessageFlags.Ephemeral]});
+            
+            const errorContainer = new ContainerBuilder()
+            .setAccentColor(Colors.Red)
+            .addTextDisplayComponents([
+                new TextDisplayBuilder()
+                .setContent(`### ❌ Houve um erro ao tentar realizar essa ação`),
+                new TextDisplayBuilder()
+                .setContent(`\`\`\`${error.message}\`\`\``)
+            ]);
+            
+            if (!interaction.replied) {
+                await interaction.reply({
+                    flags: [MessageFlags.IsComponentsV2, MessageFlags.Ephemeral],
+                    components: [errorContainer]
+                });
+            } else if ((await interaction.fetchReply()).editable) {
+                await interaction.editReply({
+                    flags: [MessageFlags.IsComponentsV2, MessageFlags.Ephemeral],
+                    components: [errorContainer]
+                });
+            } else {
+                await interaction.channel.send({
+                    flags: [MessageFlags.IsComponentsV2, MessageFlags.Ephemeral],
+                    components: [errorContainer]
+                });
+            }
         } finally {
-            await client.close();
-        }
+            await mongoClient.close();
+        };
     }
-
-}
+};

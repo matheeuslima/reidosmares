@@ -6,6 +6,7 @@ import client from "./src/Client.js";
 import cron from "node-cron";
 import "dotenv/config";
 import { MongoClient, ServerApiVersion } from "mongodb";
+import { Collection } from "discord.js";
 
 const mongoClient = new MongoClient(process.env.MONGODB_URI, {
   serverApi: {
@@ -73,18 +74,16 @@ process.on('SIGINT', async () => {
         await mongoClient.connect();
 
         if (client.tickets && client.tickets.size > 0) {
+            const ticketsToSave = Array.from(client.tickets.values());
             await mongoClient.db().collection('tickets').findOneAndUpdate(
                 { id: "tickets" },
-                { $set: { id: "tickets", value: Array.from(client.tickets.values()) } },
+                { $set: { id: "tickets", value: ticketsToSave } },
                 { returnDocument: 'after', sort: { createdAt: 1 }, upsert: true }
             );
             console.log('Todos os tickets abertos foram guardados.');
         } else {
             console.log('Nenhum ticket para salvar.');
         }
-
-        const savedTickets = await mongoClient.db().collection('tickets').findOne({ id: "tickets" });
-        console.log('Tickets salvos:', savedTickets);
     } catch (error) {
         console.error('Erro ao salvar os tickets durante o desligamento:', error);
     } finally {
