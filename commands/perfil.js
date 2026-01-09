@@ -140,12 +140,12 @@ export default {
                     components: [errorContainer]
                 });
             } else if ((await interaction.fetchReply()).editable) {
-                interaction.editReply({
+                await interaction.editReply({
                     flags: [MessageFlags.IsComponentsV2, MessageFlags.Ephemeral],
                     components: [errorContainer]
                 });
             } else {
-                interaction.channel.send({
+                await interaction.channel.send({
                     flags: [MessageFlags.IsComponentsV2, MessageFlags.Ephemeral],
                     components: [errorContainer]
                 });
