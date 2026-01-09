@@ -11,7 +11,7 @@ import {
 export default {
 
     data: new SlashCommandBuilder()
-    .setName("debug")
+    .setName("estoque")
     .setDescription("debug")
     .addStringOption(
         new SlashCommandStringOption()
