@@ -1,4 +1,11 @@
-import { ButtonInteraction, ChannelType, MessageFlags } from "discord.js";
+import {
+    ButtonInteraction,
+    ChannelType,
+    Colors,
+    ContainerBuilder,
+    MessageFlags,
+    TextDisplayBuilder
+} from "discord.js";
 import client from "../src/Client.js";
 
 export default {
@@ -7,15 +14,27 @@ export default {
      * @param {ButtonInteraction} interaction
      */
     async execute(interaction) {
-        interaction.channel.type == ChannelType.PrivateThread &&
-        client.tickets.delete(interaction.channelId) && 
-        interaction.channel.delete()
-        .catch(err => 
-            interaction.reply({
-                content: `Ocorreu um erro ao apagar esse carrinho. ${err.message}`,
-                flags: [MessageFlags.Ephemeral]
-            })
-        );
-    }
+        try {
+            interaction.channel.type == ChannelType.PrivateThread &&
+            client.tickets.delete(interaction.channelId) && 
+            interaction.channel.delete();
+        } catch (error) {
+            console.error(error);
 
-}
+            await interaction.reply({
+                flags: [MessageFlags.IsComponentsV2, MessageFlags.Ephemeral],
+                components: [
+                    new ContainerBuilder()
+                    .setAccentColor(Colors.Red)
+                    .addTextDisplayComponents([
+                        new TextDisplayBuilder()
+                        .setContent(`### ❌ Ocorreu um erro`),
+                        new TextDisplayBuilder()
+                        .setContent(`\`\`\`${error.message}\`\`\``)
+                    ])
+                    
+                ]
+            });
+        };
+    }
+};

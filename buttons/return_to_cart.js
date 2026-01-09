@@ -5,9 +5,11 @@ import {
     ButtonBuilder,
     ButtonStyle,
     MessageFlags,
-    StringSelectMenuBuilder
+    StringSelectMenuBuilder,
+    ContainerBuilder,
+    Colors,
+    TextDisplayBuilder
 } from "discord.js";
-import client from "../src/Client.js";
 import "dotenv/config";
 import { MongoClient, ServerApiVersion } from "mongodb";
 
@@ -27,8 +29,6 @@ export default {
 
         try {
             await mongoClient.connect();
-            
-            await interaction.deferReply().then(reply => reply?.delete());
 
             const stores = await mongoClient.db().collection('stores').find().toArray();
 
@@ -59,9 +59,23 @@ export default {
             });
         } catch (error) {
             console.error(error);
-            await interaction.reply({content: `Ocorreu um erro na execução dessa ação. ${error.message}.`, flags: [MessageFlags.Ephemeral]});
+
+            await interaction.reply({
+                flags: [MessageFlags.Ephemeral, MessageFlags.IsComponentsV2],
+                components: [
+                    new ContainerBuilder()
+                    .setAccentColor(Colors.Red)
+                    .addTextDisplayComponents([
+                        new TextDisplayBuilder()
+                        .setContent(`### ❌ Ocorreu um erro`),
+                        new TextDisplayBuilder()
+                        .setContent(`\`\`\`${error.message}\`\`\``)
+                    ])
+                ]
+            });
         } finally {
+            await interaction.deferReply().then(reply => reply?.delete());
             await mongoClient.close();
-        }
+        };
     }
-}
+};

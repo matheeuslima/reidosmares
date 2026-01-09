@@ -1,14 +1,11 @@
 import {
-    ActionRowBuilder,
-    ButtonBuilder,
     ButtonInteraction,
-    ButtonStyle,
+    Colors,
+    ContainerBuilder,
     MessageFlags,
     ModalBuilder,
     TextDisplayBuilder,
 } from "discord.js";
-import client from "../src/Client.js";
-import botConfig from "../config.json" with { type: "json" };
 import { MongoClient, ServerApiVersion } from "mongodb";
 import "dotenv/config";
 
@@ -49,10 +46,22 @@ export default {
             )
         } catch (error) {
             console.error(error);
-            await interaction.reply({ content: `Ocorreu um erro na execução dessa ação. ${error.message}.`, flags: [MessageFlags.Ephemeral] });
+
+            await interaction.reply({
+                flags: [MessageFlags.Ephemeral, MessageFlags.IsComponentsV2],
+                components: [
+                    new ContainerBuilder()
+                    .setAccentColor(Colors.Red)
+                    .addTextDisplayComponents([
+                        new TextDisplayBuilder()
+                        .setContent(`### ❌ Ocorreu um erro`),
+                        new TextDisplayBuilder()
+                        .setContent(`\`\`\`${error.message}\`\`\``)
+                    ])
+                ]
+            });
         } finally {
             await mongoClient.close();
-        }
-
+        };
     }
-}
+};

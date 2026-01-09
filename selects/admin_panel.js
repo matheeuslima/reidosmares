@@ -3,10 +3,12 @@ import {
     ButtonBuilder,
     ButtonStyle,
     Colors,
+    ContainerBuilder,
     EmbedBuilder,
     MessageFlags,
     StringSelectMenuBuilder,
     StringSelectMenuInteraction,
+    TextDisplayBuilder,
 } from "discord.js";
 import { MongoClient, ServerApiVersion } from "mongodb";
 import "dotenv/config";
@@ -165,6 +167,18 @@ export default {
                                 .setLabel('Excluir um produto')
                                 .setStyle(ButtonStyle.Danger),
                             ])
+                        ]
+                    })
+
+                    await interaction.channel.send({
+                        flags: [MessageFlags.IsComponentsV2],
+                        components: [
+                            new ContainerBuilder()
+                            .setAccentColor(Colors.Blurple)
+                            .addTextDisplayComponents(
+                                new TextDisplayBuilder()
+                                .setContent(description)
+                            )
                         ]
                     })
                     break;

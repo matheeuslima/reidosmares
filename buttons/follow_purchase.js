@@ -19,12 +19,39 @@ export default {
 	 */
 	async execute(interaction) {
 		const ticket = client.tickets.get(interaction.channelId);
-		if (!ticket || !ticket.cart || ticket.cart.length === 0) return await interaction.reply({content: 'Seu carrinho está vazio ou não foi encontrado.', flags: [MessageFlags.Ephemeral]});
+
+		// carrinho vazio ou não encontrado
+		if (!ticket || !ticket.cart || ticket.cart.length === 0) return await interaction.reply({
+			flags: [MessageFlags.Ephemeral, MessageFlags.IsComponentsV2],
+			components: [
+				new ContainerBuilder()
+				.setAccentColor(Colors.Red)
+				.addTextDisplayComponents([
+					new TextDisplayBuilder()
+					.setContent(`### ❌ Ocorreu um erro`),
+					new TextDisplayBuilder()
+					.setContent(`\`\`\`Seu carrinho está vazio ou não foi encontrado.\`\`\``)
+				])
+			]
+		});
 
 		// Calcular valor total
 		const total = ticket.cart.reduce((acc, product) => acc + product.price*product.amount, 0);
-		if (total <= 0) return await interaction.reply({content: 'O valor do carrinho é inválido.', flags: [MessageFlags.Ephemeral]});
-		if (total < 1.00) return await interaction.reply({content: 'O valor mínimo para concluir a compra é R$1.00.', flags: [MessageFlags.Ephemeral] });
+
+		// valor inválido
+		if (total < 1.00) return await interaction.reply({
+			flags: [MessageFlags.Ephemeral, MessageFlags.IsComponentsV2],
+			components: [
+				new ContainerBuilder()
+				.setAccentColor(Colors.Red)
+				.addTextDisplayComponents([
+					new TextDisplayBuilder()
+					.setContent(`### ❌ Ocorreu um erro`),
+					new TextDisplayBuilder()
+					.setContent(`\`\`\`O valor mínimo para concluir uma compra é de R$1.\`\`\``)
+				])
+			]
+		});
 
         interaction.message.editable &&
         await interaction.message.edit({
@@ -63,4 +90,4 @@ export default {
 
         client.tickets.set(interaction.channelId, ticket);
 	}
-}
+};

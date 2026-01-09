@@ -50,22 +50,23 @@ export default {
                         .setRequired(true)
                     )
                 )
-            )
-            
+            );
         } catch (error) {
             console.error(error);
+
             await interaction.reply({
                 flags: [MessageFlags.IsComponentsV2, MessageFlags.Ephemeral],
                 components: [
                     new ContainerBuilder()
-                    .addTextDisplayComponents(
-                        new TextDisplayBuilder()
-                        .setContent(`❌ Ocorreu um erro. ${error.message}`)
-                    )
                     .setAccentColor(Colors.Red)
+                    .addTextDisplayComponents([
+                        new TextDisplayBuilder()
+                        .setContent(`### ❌ Ocorreu um erro`),
+                        new TextDisplayBuilder()
+                        .setContent(`\`\`\`${error.message}\`\`\``)
+                    ])
                 ]
             });
-        }
+        };
     }
-
-}
+};

@@ -5,9 +5,12 @@ import {
     ButtonStyle,
     ChannelType,
     Collection,
+    Colors,
+    ContainerBuilder,
     EmbedBuilder,
     MessageFlags,
     StringSelectMenuBuilder,
+    TextDisplayBuilder,
     ThreadAutoArchiveDuration,
 } from "discord.js";
 import client from "../src/Client.js";
@@ -29,11 +32,25 @@ export default {
      * @param {ButtonInteraction} interaction
      */
     async execute(interaction) {
-        await interaction.reply({content: 'Aguarde...', flags: [MessageFlags.Ephemeral]});
+        await interaction.deferReply({flags: [MessageFlags.Ephemeral, MessageFlags.IsComponentsV2]});
 
-        if(client.tickets?.find(t => t.author === interaction.user.id)) return await interaction.editReply({content: 'Você já possui um carrinho aberto!'});
+        // verificar se o cara não tem um ticket aberto
+        if(client.tickets?.find(t => t.author === interaction.user.id)) return await interaction.editReply({
+            flags: [MessageFlags.Ephemeral, MessageFlags.IsComponentsV2],
+            components: [
+                new ContainerBuilder()
+                .addTextDisplayComponents([
+                    new TextDisplayBuilder()
+                    .setContent(`### ❌ Ocorreu um erro`),
+                    new TextDisplayBuilder()
+                    .setContent(`\`\`\`Você já possui um carrinho aberto.\`\`\``)
+                ])
+                .setAccentColor(Colors.Red)
+            ]
+        });
 
-        const channel = await interaction.channel.threads.create({
+        // criar o ticket
+        const ticketChannel = await interaction.channel.threads.create({
             name: `${interaction.member.roles.cache.has(botConfig.role.booster) ? "🚀 " : ""}Carrinho de ${interaction.user.username}`,
             autoArchiveDuration: ThreadAutoArchiveDuration.OneWeek,
             type: ChannelType.PrivateThread,
@@ -41,7 +58,8 @@ export default {
             invitable: false   
         });
 
-        channel.send({
+        // ping no ticket
+        ticketChannel.send({
             content: `-# <@&1339004186129338501> <@${interaction.user.id}>`
         }).then((msg) => {
             msg.delete();
@@ -53,7 +71,8 @@ export default {
             const stores = await mongoClient.db().collection('stores').find().toArray();
             const customEmbed = JSON.parse((await mongoClient.db().collection('embeds').findOne({id: 'cart_starter'})).code);
 
-            await channel.send({
+            // mensagem inicial
+            await ticketChannel.send({
                 content: customEmbed['content'] || '',
                 embeds: [
                     customEmbed['embed'] ||
@@ -81,8 +100,9 @@ export default {
                 ]
             });
 
+            // criar objeto do ticket pra registrar na memória
             const ticket = {
-                id: channel.id,
+                id: ticketChannel.id,
                 author: interaction.user.id,
                 seller: undefined,
                 store: undefined,
@@ -90,16 +110,41 @@ export default {
                 cart: []
             };
 
-            await interaction.editReply({content: `🛒 Seu carrinho foi criado <#${channel.id}>`});
+            // informar o cliente
+            await interaction.editReply({
+                flags: [MessageFlags.Ephemeral, MessageFlags.IsComponentsV2],
+                components: [
+                    new ContainerBuilder()
+                    .addTextDisplayComponents([
+                        new TextDisplayBuilder()
+                        .setContent(`### 🛒 Seu <#${ticketChannel.id}> foi criado!`),
+                    ])
+                    .setAccentColor(Colors.Green)
+                ]
+            });
 
-            client.tickets ? client.tickets.set(channel.id, ticket) : client.tickets = new Collection().set(channel.id, ticket);
+            // adicionar objeto do ticket na memória
+            client.tickets ? client.tickets.set(ticketChannel.id, ticket) : client.tickets = new Collection().set(ticketChannel.id, ticket);
             
         } catch (error) {
             console.error(error);
-            await interaction.editReply({content: `Ocorreu um erro na execução dessa ação. ${error.message}.`});
+
+            await interaction.editReply({
+                flags: [MessageFlags.Ephemeral, MessageFlags.IsComponentsV2],
+                components: [
+                    new ContainerBuilder()
+                    .setAccentColor(Colors.Red)
+                    .addTextDisplayComponents([
+                        new TextDisplayBuilder()
+                        .setContent(`### ❌ Ocorreu um erro`),
+                        new TextDisplayBuilder()
+                        .setContent(`\`\`\`${error.message}\`\`\``)
+                    ])
+                    
+                ]
+            });
         } finally {
             await mongoClient.close();
-        }
+        };
     }
-
-}
+};

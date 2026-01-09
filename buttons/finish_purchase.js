@@ -1,4 +1,17 @@
-import { ActionRowBuilder, ButtonBuilder, ButtonInteraction, ButtonStyle, Colors, ContainerBuilder, EmbedBuilder, MessageFlags, SectionBuilder, SeparatorBuilder, SeparatorSpacingSize, TextDisplayBuilder, ThumbnailBuilder } from "discord.js";
+import {
+    ActionRowBuilder,
+    ButtonBuilder,
+    ButtonInteraction,
+    ButtonStyle,
+    Colors,
+    ContainerBuilder,
+    MessageFlags,
+    SectionBuilder,
+    SeparatorBuilder,
+    SeparatorSpacingSize,
+    TextDisplayBuilder,
+    ThumbnailBuilder
+} from "discord.js";
 import client from "../src/Client.js";
 import botConfig from "../config.json" with { type: "json" };
 import { MongoClient, ServerApiVersion } from "mongodb";
@@ -19,13 +32,81 @@ export default {
     async execute(interaction) {
         const ticket = client.tickets.get(interaction.channelId);
 
-        if (!ticket || !ticket.cart || ticket.cart.length === 0) return await interaction.reply({ content: 'Seu carrinho está vazio ou não foi encontrado.', flags: [MessageFlags.Ephemeral] });
-        if (!ticket.seller) return await interaction.reply({ content: 'Nenhum vendedor foi atribuído a este ticket. Aguarde um vendedor te responder.', flags: [MessageFlags.Ephemeral] });
-        if (!interaction.member?.roles?.cache?.has(botConfig.role.owner) && !botConfig.owners.includes(interaction.user.id)) return await interaction.reply({ content: 'Somente os vendedores podem clicar nesse botão.', flags: [MessageFlags.Ephemeral] });
-        if (ticket.paid) return await interaction.reply({ content: 'Esta compra já foi marcada como paga.', flags: [MessageFlags.Ephemeral] });
+        // ticket vazio ou não encontrado
+        if (!ticket || !ticket.cart || ticket.cart.length === 0) return await interaction.reply({
+            flags: [MessageFlags.Ephemeral, MessageFlags.IsComponentsV2],
+            components: [
+                new ContainerBuilder()
+                .setAccentColor(Colors.Red)
+                .addTextDisplayComponents([
+                    new TextDisplayBuilder()
+                    .setContent(`### ❌ Ocorreu um erro`),
+                    new TextDisplayBuilder()
+                    .setContent(`\`\`\`Seu carrinho está vazio ou não foi encontrado.\`\`\``)
+                ])
+            ]
+        });
+
+        // ticket sem vendedor
+        if (!ticket.seller) return await interaction.reply({
+            flags: [MessageFlags.Ephemeral, MessageFlags.IsComponentsV2],
+            components: [
+                new ContainerBuilder()
+                .setAccentColor(Colors.Red)
+                .addTextDisplayComponents([
+                    new TextDisplayBuilder()
+                    .setContent(`### ❌ Ocorreu um erro`),
+                    new TextDisplayBuilder()
+                    .setContent(`\`\`\`O carrinho ainda não foi reivindicado por nenhum vendedor.\`\`\``)
+                ])
+            ]
+        });
+
+        // somente vendedores
+        if (!interaction.member?.roles?.cache?.has(botConfig.role.owner) && !botConfig.owners.includes(interaction.user.id)) return await interaction.reply({
+            flags: [MessageFlags.Ephemeral, MessageFlags.IsComponentsV2],
+            components: [
+                new ContainerBuilder()
+                .setAccentColor(Colors.Red)
+                .addTextDisplayComponents([
+                    new TextDisplayBuilder()
+                    .setContent(`### ❌ Ocorreu um erro`),
+                    new TextDisplayBuilder()
+                    .setContent(`\`\`\`Somente vendedores podem utilizar esse botão.\`\`\``)
+                ])
+            ]
+        });
+
+        // compra já tá paga fi
+        if (ticket.paid) return await interaction.reply({
+            flags: [MessageFlags.Ephemeral, MessageFlags.IsComponentsV2],
+            components: [
+                new ContainerBuilder()
+                .setAccentColor(Colors.Red)
+                .addTextDisplayComponents([
+                    new TextDisplayBuilder()
+                    .setContent(`### ❌ Ocorreu um erro`),
+                    new TextDisplayBuilder()
+                    .setContent(`\`\`\`Esta compra já foi marcada como paga.\`\`\``)
+                ])
+            ]
+        });
         
+        // carrinho menor que 1 real
         const cartTotal = ticket.cart.reduce((acc, product) => acc + product.price * product.amount, 0);
-        if (cartTotal < 1.00) return await interaction.reply({ content: 'O valor mínimo para concluir a compra é R$1.00.', flags: [MessageFlags.Ephemeral] });
+        if (cartTotal < 1.00) return await interaction.reply({
+            flags: [MessageFlags.Ephemeral, MessageFlags.IsComponentsV2],
+            components: [
+                new ContainerBuilder()
+                .setAccentColor(Colors.Red)
+                .addTextDisplayComponents([
+                    new TextDisplayBuilder()
+                    .setContent(`### ❌ Ocorreu um erro`),
+                    new TextDisplayBuilder()
+                    .setContent(`\`\`\`O valor mínimo para concluir uma compra é de R$1.\`\`\``)
+                ])
+            ]
+        });
 
         // Marca o ticket como pago
         ticket.paid = true;
@@ -35,37 +116,25 @@ export default {
         ticket.seller = interaction.user.id;
         client.tickets.set(interaction.channelId, ticket);
 
-        await interaction.reply({ content: 'Compra marcada como paga com sucesso!', flags: [MessageFlags.Ephemeral] });
+        await interaction.reply({
+            flags: [MessageFlags.Ephemeral, MessageFlags.IsComponentsV2],
+            components: [
+                new ContainerBuilder()
+                .setAccentColor(Colors.Green)
+                .addTextDisplayComponents(
+                    new TextDisplayBuilder()
+                    .setContent(`### ✅ Compra marcada como paga com sucesso!`),
+                )
+            ]
+        });
 
         // Registra no canal de logs
         const logChannel = interaction.guild.channels.cache.get(botConfig.channel.purchaseLog);
-        
+
         if (logChannel && logChannel.isTextBased()) {
             const total = ticket.cart.reduce((acc, product) => acc + product.price*product.amount, 0);
             const ticketAuthor = interaction.guild.members.cache.get(ticket.author);
-            logChannel.send({
-                embeds: [
-                    new EmbedBuilder()
-                    .setTitle('🛍 Compra realizada!')
-                    .setAuthor({ name: ticketAuthor.user.username, iconURL: ticketAuthor.user.displayAvatarURL() })
-                    .setFooter({ iconURL: interaction.guild.iconURL(), text: interaction.guild.name })
-                    .setTimestamp(Date.now())
-                    .setColor(Colors.Green)
-                    .setFields([
-                        { name: '🛒 Carrinho', value: ticket.cart.map(p => `\`- ${p.amount}x ${p.name} (R$${(p.price * p.amount).toFixed(2)})\``).join('\n') || 'Nenhum produto adicionado.', inline: false },
-                        { name: '💳 Valor pago', value: `\`R$${total.toFixed(2)}\``, inline: false }
-                    ]), 
-                ],
-                components: [
-                    new ActionRowBuilder()
-                    .setComponents([
-                        new ButtonBuilder()
-                        .setLabel('Comprar!')
-                        .setStyle(ButtonStyle.Link)
-                        .setURL(`https://discord.com/channels/${interaction.guild.id}/${botConfig.channel.newCart}`)
-                    ])
-                ]
-            });
+
             logChannel.send({
                 flags: [MessageFlags.IsComponentsV2],
                 components: [
@@ -121,6 +190,7 @@ export default {
             })
         }
 
+        // Remove os botões da mensagem
         interaction.message.editable &&
         await interaction.message.edit({
             components: []
@@ -128,12 +198,15 @@ export default {
 
         try {
             await mongoClient.connect();
+            // adicionar vendas
             await mongoClient.db().collection('sales').insertOne(ticket);
+            // reduzir estoques
             ticket.cart.forEach(product => {
                 mongoClient.db().collection('products').updateOne({id: product.id}, {
                     $inc: { stock: product.amount*-1 }
                 });
             })
+            // perfil do usuário
             await mongoClient.db().collection('users').updateOne({id: ticket.author}, {
                 $inc: { totalSpent: ticket.cart.reduce((acc, product) => acc + product.price*product.amount, 0) },
                 $set: { lastPurchase: new Date() },
@@ -175,8 +248,8 @@ export default {
                 }
             }
 
+            // deletar ticket
             client.tickets.delete(interaction.channelId);
-        
             await interaction.channel.delete('Compra finalizada e ticket arquivado.');
 
             // review
@@ -208,9 +281,22 @@ export default {
 
         } catch (error) {
             console.error(error);
-            await interaction.channel.send(`Ocorreu um erro ao conectar no banco de dados. ${error.message}.`);
+
+            await interaction.reply({
+                flags: [MessageFlags.Ephemeral, MessageFlags.IsComponentsV2],
+                components: [
+                    new ContainerBuilder()
+                    .setAccentColor(Colors.Red)
+                    .addTextDisplayComponents([
+                        new TextDisplayBuilder()
+                        .setContent(`### ❌ Ocorreu um erro`),
+                        new TextDisplayBuilder()
+                        .setContent(`\`\`\`${error.message}\`\`\``)
+                    ])
+                ]
+            });
         } finally {
             await mongoClient.close();
-        }
+        };
     }
-}
+};

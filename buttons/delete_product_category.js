@@ -1,13 +1,12 @@
 import {
-    ActionRowBuilder,
     ButtonInteraction,
+    Colors,
+    ContainerBuilder,
     LabelBuilder,
     MessageFlags,
     ModalBuilder,
     StringSelectMenuBuilder,
     TextDisplayBuilder,
-    TextInputBuilder,
-    TextInputStyle,
 } from "discord.js";
 import { MongoClient, ServerApiVersion } from "mongodb";
 import "dotenv/config";
@@ -30,9 +29,21 @@ export default {
             await mongoClient.connect();
 
             const categories = await mongoClient.db().collection('product_categories').find().toArray();
-            if(!categories?.length) return interaction.reply({content: `Não há categorias para excluir.`, flags: [MessageFlags.Ephemeral]})
+            if(!categories?.length) return await interaction.reply({
+                flags: [MessageFlags.Ephemeral, MessageFlags.IsComponentsV2],
+                components: [
+                    new ContainerBuilder()
+                    .setAccentColor(Colors.Red)
+                    .addTextDisplayComponents([
+                        new TextDisplayBuilder()
+                        .setContent(`### ❌ Ocorreu um erro`),
+                        new TextDisplayBuilder()
+                        .setContent(`\`\`\`Não há categorias registradas.\`\`\``)
+                    ])
+                ]
+            });
 
-            interaction.showModal(
+            await interaction.showModal(
                 new ModalBuilder()
                 .setCustomId(`delete_product_category`)
                 .setTitle('Qual categoria de produto vai apagar?')
@@ -58,13 +69,24 @@ export default {
                     .setContent(`⚠️ Apagar essa categoria também excluirá todos os produtos pertencentes a ela.`)
                 )
             )
-            
         } catch (error) {
             console.error(error);
-            await interaction.editReply({content: `Ocorreu um erro na execução dessa ação. ${error.message}.`});
+
+            await interaction.editReply({
+                flags: [MessageFlags.Ephemeral, MessageFlags.IsComponentsV2],
+                components: [
+                    new ContainerBuilder()
+                    .setAccentColor(Colors.Red)
+                    .addTextDisplayComponents([
+                        new TextDisplayBuilder()
+                        .setContent(`### ❌ Ocorreu um erro`),
+                        new TextDisplayBuilder()
+                        .setContent(`\`\`\`${error.message}\`\`\``)
+                    ])
+                ]
+            });
         } finally {
             await mongoClient.close();
-        }
+        };
     }
-
-}
+};

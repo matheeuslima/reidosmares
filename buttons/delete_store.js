@@ -1,13 +1,12 @@
 import {
-    ActionRowBuilder,
     ButtonInteraction,
+    Colors,
+    ContainerBuilder,
     LabelBuilder,
     MessageFlags,
     ModalBuilder,
     StringSelectMenuBuilder,
     TextDisplayBuilder,
-    TextInputBuilder,
-    TextInputStyle,
 } from "discord.js";
 import { MongoClient, ServerApiVersion } from "mongodb";
 import "dotenv/config";
@@ -57,14 +56,25 @@ export default {
                     new TextDisplayBuilder()
                     .setContent(`⚠️ Apagar essa loja também excluirá todas as categorias pertencentes a ela e produtos pertencentes às categorias.`)
                 )
-            )
-            
+            );
         } catch (error) {
             console.error(error);
-            await interaction.editReply({content: `Ocorreu um erro na execução dessa ação. ${error.message}.`});
+
+            await interaction.reply({
+                flags: [MessageFlags.Ephemeral, MessageFlags.IsComponentsV2],
+                components: [
+                    new ContainerBuilder()
+                    .setAccentColor(Colors.Red)
+                    .addTextDisplayComponents([
+                        new TextDisplayBuilder()
+                        .setContent(`### ❌ Ocorreu um erro`),
+                        new TextDisplayBuilder()
+                        .setContent(`\`\`\`${error.message}\`\`\``)
+                    ])
+                ]
+            });
         } finally {
             await mongoClient.close();
-        }
+        };
     }
-
-}
+};

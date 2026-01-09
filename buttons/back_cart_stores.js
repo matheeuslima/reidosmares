@@ -3,7 +3,11 @@ import {
     ButtonBuilder,
     ButtonInteraction,
     ButtonStyle,
+    Colors,
+    ContainerBuilder,
+    MessageFlags,
     StringSelectMenuBuilder,
+    TextDisplayBuilder,
 } from "discord.js";
 import { MongoClient, ServerApiVersion } from "mongodb";
 import "dotenv/config";
@@ -26,7 +30,6 @@ export default {
             await mongoClient.connect();
 
             const stores = await mongoClient.db().collection('stores').find().toArray();
-            const customEmbed = JSON.parse((await mongoClient.db().collection('embeds').findOne({id: 'cart_starter'})).code);
 
             interaction.message.editable && await interaction.message.edit({
                 components: [
@@ -49,14 +52,26 @@ export default {
                     ])
                 ]
             });
-            
-            await interaction.deferReply().then(reply => reply.delete());
         } catch (error) {
             console.error(error);
-            await interaction.channel.send({content: `Ocorreu um erro na execução dessa ação. ${error.message}.`});
-        } finally {
-            await mongoClient.close();
-        }
-    }
 
-}
+            await interaction.reply({
+                flags: [MessageFlags.IsComponentsV2, MessageFlags.Ephemeral],
+                components: [
+                    new ContainerBuilder()
+                    .setAccentColor(Colors.Red)
+                    .addTextDisplayComponents([
+                        new TextDisplayBuilder()
+                        .setContent(`### ❌ Ocorreu um erro`),
+                        new TextDisplayBuilder()
+                        .setContent(`\`\`\`${error.message}\`\`\``)
+                    ])
+                    
+                ]
+            });
+        } finally {
+            await interaction.deferReply().then(reply => reply.delete());
+            await mongoClient.close();
+        };
+    }
+};
