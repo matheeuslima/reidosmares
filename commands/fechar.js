@@ -23,14 +23,17 @@ export default {
      * @param {ChatInputCommandInteraction} interaction 
      */
     async execute(interaction) {
+        // apenas em carrinhos
         if(interaction.channel.parentId != botConfig.channel.newCart) return await interaction.editReply({
             flags: [MessageFlags.IsComponentsV2, MessageFlags.Ephemeral],
             components: [
                 new ContainerBuilder()
-                .addTextDisplayComponents(
-                    new TextDisplayBuilder()
-                    .setContent("❌ Você só pode usar esse comando no canal de criação de carrinhos.")
-                )
+                .addTextDisplayComponents([
+                        new TextDisplayBuilder()
+                        .setContent(`### ❌ Ocorreu um erro`),
+                        new TextDisplayBuilder()
+                        .setContent(`\`\`\`Você só pode usar esse comando em um carrinho.\`\`\``)
+                    ])
                 .setAccentColor(Colors.Red)
             ]
         });
@@ -41,9 +44,22 @@ export default {
             interaction.channel.delete();
         } catch (error) {
             console.error(error);
-            await interaction.editReply({content: `Ocorreu um erro na execução desse comando. ${error.message}.`, flags: [MessageFlags.Ephemeral]});
+
+            await interaction.editReply({
+                flags: [MessageFlags.Ephemeral, MessageFlags.IsComponentsV2],
+                components: [
+                    new ContainerBuilder()
+                    .setAccentColor(Colors.Red)
+                    .addTextDisplayComponents([
+                        new TextDisplayBuilder()
+                        .setContent(`### ❌ Ocorreu um erro`),
+                        new TextDisplayBuilder()
+                        .setContent(`\`\`\`${error.message}\`\`\``)
+                    ])
+                ]
+            });
         } finally {
             await client.close();
-        }
+        };
     }
-}
+};

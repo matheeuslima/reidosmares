@@ -152,7 +152,7 @@ export default {
                         )
                         .addTextDisplayComponents(
                             new TextDisplayBuilder()
-                            .setContent(`<@${ticketAuthor.user.id}> comprou de <@${ticket.seller}>`)
+                            .setContent(`${ticketAuthor.user.username} comprou de ${interaction.guild.members.cache.get(ticket.seller).user.username}`)
                         )
                         .setThumbnailAccessory(
                             new ThumbnailBuilder()

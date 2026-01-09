@@ -1,11 +1,13 @@
 import {
     ChatInputCommandInteraction,
     Colors,
+    ContainerBuilder,
     EmbedBuilder,
     MessageFlags,
     PermissionsBitField,
     SlashCommandBuilder,
-    SlashCommandUserOption
+    SlashCommandUserOption,
+    TextDisplayBuilder
 } from "discord.js";
 import { MongoClient, ServerApiVersion } from "mongodb";
 import "dotenv/config";
@@ -40,12 +42,9 @@ export default {
             const targetUser = interaction.options.getUser('comprador') || interaction.user;
 
             const user = await mongoClient.db().collection('users').findOne({ id: targetUser.id });
-            //if(!user) return interaction.editReply({content: `${targetUser.username} ainda não fez nenhuma compra.`, flags: [MessageFlags.Ephemeral]});
             const topUsers = await mongoClient.db().collection('users').find().sort({ totalSpent: -1 }).toArray();
             const userRank = topUsers.findIndex(u => u.id === targetUser.id) + 1;
             
-            //if(userRank === 0) return interaction.editReply({content: `Você ainda não fez nenhuma compra.`, flags: [MessageFlags.Ephemeral]});
-
             // Calcula rendimentos: mês atual, últimos 7 dias (mantido) e hoje (00:00 - 23:59)
             // Força timezone sem usar libs: usa horas de offset fixo (em horas) definido em env FORCE_TZ_OFFSET_HOURS (ex: -3 para America/Sao_Paulo)
             const tzOffsetHours = -3;
@@ -121,15 +120,26 @@ export default {
                             { name: 'Nenhuma atividade', value: 'Ainda não fez nenhuma compra ou venda na loja.', inline: false }
                         ] : [])
                     ])
-                ],
-                flags: [MessageFlags.Ephemeral]
+                ]
             });
-
         } catch (error) {
             console.error(error);
-            await interaction.reply({content: `Ocorreu um erro na execução desse comando. ${error.message}.`, flags: [MessageFlags.Ephemeral]});
+
+            await interaction.editReply({
+                flags: [MessageFlags.Ephemeral, MessageFlags.IsComponentsV2],
+                components: [
+                    new ContainerBuilder()
+                    .setAccentColor(Colors.Red)
+                    .addTextDisplayComponents([
+                        new TextDisplayBuilder()
+                        .setContent(`### ❌ Ocorreu um erro`),
+                        new TextDisplayBuilder()
+                        .setContent(`\`\`\`${error.message}\`\`\``)
+                    ])
+                ]
+            });
         } finally {
             await mongoClient.close();
-        }
+        };
     }
-}
+};
