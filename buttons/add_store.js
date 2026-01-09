@@ -42,7 +42,7 @@ export default {
                     ),
                     new LabelBuilder()
                     .setLabel('Emoji Ícone da Loja')
-                    .addComponents(
+                    .setTextInputComponent(
                         new TextInputBuilder()
                         .setCustomId(`store_emoji`)
                         .setStyle(TextInputStyle.Short)
@@ -61,7 +61,7 @@ export default {
                     .setAccentColor(Colors.Red)
                     .addTextDisplayComponents([
                         new TextDisplayBuilder()
-                        .setContent(`### ❌ Ocorreu um erro`),
+                        .setContent(`### ❌ Houve um erro ao tentar realizar essa ação`),
                         new TextDisplayBuilder()
                         .setContent(`\`\`\`${error.message}\`\`\``)
                     ])

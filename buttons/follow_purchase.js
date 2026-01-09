@@ -28,7 +28,7 @@ export default {
 				.setAccentColor(Colors.Red)
 				.addTextDisplayComponents([
 					new TextDisplayBuilder()
-					.setContent(`### ❌ Ocorreu um erro`),
+					.setContent(`### ❌ Houve um erro ao tentar realizar essa ação`),
 					new TextDisplayBuilder()
 					.setContent(`\`\`\`Seu carrinho está vazio ou não foi encontrado.\`\`\``)
 				])
@@ -46,7 +46,7 @@ export default {
 				.setAccentColor(Colors.Red)
 				.addTextDisplayComponents([
 					new TextDisplayBuilder()
-					.setContent(`### ❌ Ocorreu um erro`),
+					.setContent(`### ❌ Houve um erro ao tentar realizar essa ação`),
 					new TextDisplayBuilder()
 					.setContent(`\`\`\`O valor mínimo para concluir uma compra é de R$1.\`\`\``)
 				])

@@ -1,4 +1,18 @@
-import { Colors, EmbedBuilder, MessageFlags, ModalSubmitInteraction } from "discord.js";
+import {
+    ActionRowBuilder,
+    ButtonBuilder,
+    ButtonStyle,
+    Colors,
+    ContainerBuilder,
+    EmbedBuilder,
+    MessageFlags,
+    ModalSubmitInteraction,
+    SectionBuilder,
+    SeparatorBuilder,
+    SeparatorSpacingSize,
+    StringSelectMenuBuilder,
+    TextDisplayBuilder
+} from "discord.js";
 import { MongoClient, ServerApiVersion } from "mongodb";
 import "dotenv/config";
 
@@ -22,13 +36,26 @@ export default {
             const storeName = interaction.fields.getTextInputValue('store_name');
             const storeId = interaction.fields.getTextInputValue('store_id');
             const storeEmoji = interaction.fields.getTextInputValue('store_emoji');
+            const oldId = interaction.customId.split(':')[1];
 
             // verifica se o ID do produto já existe
-            const store = await mongoClient.db().collection("stores").findOne({id: interaction.customId.split(':')[1]});
-            if(!store) return await interaction.reply({content: `Loja não encontrada no banco de dados.`, flags: [MessageFlags.Ephemeral]});
+            const store = await mongoClient.db().collection("stores").findOne({id: oldId});
+            if(!store) return await interaction.reply({
+                flags: [MessageFlags.IsComponentsV2, MessageFlags.Ephemeral],
+                components: [
+                    new ContainerBuilder()
+                    .setAccentColor(Colors.Red)
+                    .addTextDisplayComponents([
+                        new TextDisplayBuilder()
+                        .setContent(`### ❌ Houve um erro ao tentar realizar essa ação`),
+                        new TextDisplayBuilder()
+                        .setContent(`\`\`\`Loja não encontrada no banco de dados.\`\`\``)
+                    ])
+                ]
+            });
 
             // atualiza no banco
-            await mongoClient.db().collection("stores").updateOne({id: interaction.customId.split(':')[1]}, {
+            await mongoClient.db().collection("stores").updateOne({id: oldId}, {
                 $set: {
                     name: storeName,
                     id: storeId,
@@ -36,21 +63,115 @@ export default {
                 }
             })
 
+            // atualiza categorias
+            storeId != oldId && await mongoClient.db().collection("product_categories").updateMany({store: oldId}, {
+                $set: {
+                    store: storeId
+                }
+            })
+
+            // responde o cara
             await interaction.reply({
-                content: `Loja "${storeId}" atualizada com sucesso.`,
-                embeds: [
-                    new EmbedBuilder()
-                    .setColor(Colors.Green)
-                    .setDescription(`# ${storeEmoji} ${storeName}`)
-                ],
-                flags: [MessageFlags.Ephemeral]
+                flags: [MessageFlags.IsComponentsV2],
+                components: [
+                    new ContainerBuilder()
+                    .setAccentColor(Colors.Green)
+                    .addTextDisplayComponents([
+                        new TextDisplayBuilder()
+                        .setContent('# Loja atualizada'),
+                        new TextDisplayBuilder()
+                        .setContent(`## ${storeEmoji} ${storeName}\n- **ID:** \`${storeId}\``)
+                    ])
+                ]
+            });
+
+            // atualizar painel
+            const stores = await mongoClient.db().collection('stores').find().toArray();
+
+            interaction.message.editable && await interaction.message.edit({
+                flags: [MessageFlags.IsComponentsV2],
+                components: [
+                    new ContainerBuilder()
+                    .setAccentColor(Colors.Blurple)
+                    .addSectionComponents(
+                        new SectionBuilder()
+                        .addTextDisplayComponents(
+                            new TextDisplayBuilder()
+                            .setContent('# Painel administrativo')
+                        )
+                        .setButtonAccessory(
+                            new ButtonBuilder()
+                            .setCustomId('reset_panel')
+                            .setLabel('Início')
+                            .setStyle(ButtonStyle.Secondary)
+                            .setEmoji('🏠')
+                        )
+                    )
+                    .addSeparatorComponents(
+                        new SeparatorBuilder()
+                        .setSpacing(SeparatorSpacingSize.Large)
+                    )
+                    .addTextDisplayComponents(
+                        new TextDisplayBuilder()
+                        .setContent(`\n- ${stores.map(store => `**${store.emoji} ${store.name} (${store.id})**`).join('\n- ') || 'Nenhuma loja definida.'}`)
+                    )
+                    .addSeparatorComponents(
+                        new SeparatorBuilder()
+                        .setSpacing(SeparatorSpacingSize.Large)
+                    )
+                    .addActionRowComponents([
+                        new ActionRowBuilder()
+                        .setComponents([
+                            new StringSelectMenuBuilder()
+                            .setPlaceholder('Selecionar loja pra editar...')
+                            .setCustomId('admin_panel_select_store')
+                            .setOptions(
+                                stores.length>0 ? stores.map(store => ({
+                                    label: store.name,
+                                    description: store.id,
+                                    value: store.id,
+                                    emoji: store.emoji || undefined
+                                })) : [
+                                    { label: 'Nenhuma loja disponível', description: 'Adicione lojas para gerenciá-las aqui.', value: 'no_stores', default: true }
+                                ]
+                            )
+                            .setMinValues(1)
+                            .setMaxValues(1),
+                        ]),
+                        new ActionRowBuilder()
+                        .setComponents([
+                            new ButtonBuilder()
+                            .setCustomId('add_store')
+                            .setEmoji('➕')
+                            .setLabel('Adicionar nova loja')
+                            .setStyle(ButtonStyle.Success),
+                            new ButtonBuilder()
+                            .setCustomId('delete_store')
+                            .setEmoji('🗑️')
+                            .setLabel('Excluir uma loja')
+                            .setStyle(ButtonStyle.Danger),
+                        ])
+                    ])
+                ]
             });
         } catch (error) {
             console.error(error);
-            await interaction.reply({content: `Ocorreu um erro na execução dessa ação. ${error.message}.`, flags: [MessageFlags.Ephemeral]});
+
+            await interaction.reply({
+                flags: [MessageFlags.IsComponentsV2, MessageFlags.Ephemeral],
+                components: [
+                    new ContainerBuilder()
+                    .setAccentColor(Colors.Red)
+                    .addTextDisplayComponents([
+                        new TextDisplayBuilder()
+                        .setContent(`### ❌ Houve um erro ao tentar realizar essa ação`),
+                        new TextDisplayBuilder()
+                        .setContent(`\`\`\`${error.message}\`\`\``)
+                    ])
+                ]
+            });
         } finally {
             await mongoClient.close();
-        }
+        };
     }
-
-}
+};

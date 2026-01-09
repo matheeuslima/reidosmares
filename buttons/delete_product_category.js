@@ -36,7 +36,7 @@ export default {
                     .setAccentColor(Colors.Red)
                     .addTextDisplayComponents([
                         new TextDisplayBuilder()
-                        .setContent(`### ❌ Ocorreu um erro`),
+                        .setContent(`### ❌ Houve um erro ao tentar realizar essa ação`),
                         new TextDisplayBuilder()
                         .setContent(`\`\`\`Não há categorias registradas.\`\`\``)
                     ])
@@ -72,14 +72,14 @@ export default {
         } catch (error) {
             console.error(error);
 
-            await interaction.editReply({
+            await interaction.reply({
                 flags: [MessageFlags.Ephemeral, MessageFlags.IsComponentsV2],
                 components: [
                     new ContainerBuilder()
                     .setAccentColor(Colors.Red)
                     .addTextDisplayComponents([
                         new TextDisplayBuilder()
-                        .setContent(`### ❌ Ocorreu um erro`),
+                        .setContent(`### ❌ Houve um erro ao tentar realizar essa ação`),
                         new TextDisplayBuilder()
                         .setContent(`\`\`\`${error.message}\`\`\``)
                     ])

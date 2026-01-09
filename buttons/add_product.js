@@ -36,7 +36,7 @@ export default {
                 new ModalBuilder()
                 .setCustomId(`add_product`)
                 .setTitle('Novo produto')
-                .setLabelComponents(
+                .addLabelComponents([
                     new LabelBuilder()
                     .setLabel('Nome do Produto')
                     .setTextInputComponent(
@@ -91,8 +91,8 @@ export default {
                         .setStyle(TextInputStyle.Short)
                         .setPlaceholder(`Ex.: 7.00 (apenas número com . para separar centavos se necessário)`)
                         .setRequired(true)
-                    ),
-                )
+                    )
+                ])
             );
         } catch (error) {
             console.error(error);
@@ -104,7 +104,7 @@ export default {
                     .setAccentColor(Colors.Red)
                     .addTextDisplayComponents([
                         new TextDisplayBuilder()
-                        .setContent(`### ❌ Ocorreu um erro`),
+                        .setContent(`### ❌ Houve um erro ao tentar realizar essa ação`),
                         new TextDisplayBuilder()
                         .setContent(`\`\`\`${error.message}\`\`\``)
                     ])

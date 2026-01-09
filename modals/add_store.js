@@ -1,8 +1,16 @@
 import {
+    ActionRowBuilder,
+    ButtonBuilder,
+    ButtonStyle,
     Colors,
-    EmbedBuilder,
+    ContainerBuilder,
     MessageFlags,
     ModalSubmitInteraction,
+    SectionBuilder,
+    SeparatorBuilder,
+    SeparatorSpacingSize,
+    StringSelectMenuBuilder,
+    TextDisplayBuilder,
 } from "discord.js";
 import { MongoClient, ServerApiVersion } from "mongodb";
 import "dotenv/config";
@@ -34,21 +42,108 @@ export default {
                 emoji: storeEmoji,
             })
 
+            // responde o cara
             await interaction.reply({
-                content: `Loja "${storeId}" criada com sucesso.`,
-                embeds: [
-                    new EmbedBuilder()
-                    .setColor(Colors.Green)
-                    .setDescription(`# ${storeEmoji} ${storeName}`)
-                ],
-                flags: [MessageFlags.Ephemeral]
+                flags: [MessageFlags.IsComponentsV2],
+                components: [
+                    new ContainerBuilder()
+                    .setAccentColor(Colors.Green)
+                    .addTextDisplayComponents([
+                        new TextDisplayBuilder()
+                        .setContent('# Nova loja criada'),
+                        new TextDisplayBuilder()
+                        .setContent(`## ${storeEmoji} ${storeName}\n- **ID:** \`${storeId}\``)
+                    ])
+                ]
+            });
+
+            // atualizar painel
+            const stores = await mongoClient.db().collection('stores').find().toArray();
+
+            await interaction.message.edit({
+                flags: [MessageFlags.IsComponentsV2],
+                components: [
+                    new ContainerBuilder()
+                    .setAccentColor(Colors.Blurple)
+                    .addSectionComponents(
+                        new SectionBuilder()
+                        .addTextDisplayComponents(
+                            new TextDisplayBuilder()
+                            .setContent('# Painel administrativo')
+                        )
+                        .setButtonAccessory(
+                            new ButtonBuilder()
+                            .setCustomId('reset_panel')
+                            .setLabel('Início')
+                            .setStyle(ButtonStyle.Secondary)
+                            .setEmoji('🏠')
+                        )
+                    )
+                    .addSeparatorComponents(
+                        new SeparatorBuilder()
+                        .setSpacing(SeparatorSpacingSize.Large)
+                    )
+                    .addTextDisplayComponents(
+                        new TextDisplayBuilder()
+                        .setContent(`\n- ${stores.map(store => `**${store.emoji} ${store.name} (${store.id})**`).join('\n- ') || 'Nenhuma loja definida.'}`)
+                    )
+                    .addSeparatorComponents(
+                        new SeparatorBuilder()
+                        .setSpacing(SeparatorSpacingSize.Large)
+                    )
+                    .addActionRowComponents([
+                        new ActionRowBuilder()
+                        .setComponents([
+                            new StringSelectMenuBuilder()
+                            .setPlaceholder('Selecionar loja pra editar...')
+                            .setCustomId('admin_panel_select_store')
+                            .setOptions(
+                                stores.length>0 ? stores.map(store => ({
+                                    label: store.name,
+                                    description: store.id,
+                                    value: store.id,
+                                    emoji: store.emoji || undefined
+                                })) : [
+                                    { label: 'Nenhuma loja disponível', description: 'Adicione lojas para gerenciá-las aqui.', value: 'no_stores', default: true }
+                                ]
+                            )
+                            .setMinValues(1)
+                            .setMaxValues(1),
+                        ]),
+                        new ActionRowBuilder()
+                        .setComponents([
+                            new ButtonBuilder()
+                            .setCustomId('add_store')
+                            .setEmoji('➕')
+                            .setLabel('Adicionar nova loja')
+                            .setStyle(ButtonStyle.Success),
+                            new ButtonBuilder()
+                            .setCustomId('delete_store')
+                            .setEmoji('🗑️')
+                            .setLabel('Excluir uma loja')
+                            .setStyle(ButtonStyle.Danger),
+                        ])
+                    ])
+                ]
             });
         } catch (error) {
             console.error(error);
-            await interaction.reply({content: `Ocorreu um erro na execução dessa ação. ${error.message}.`, flags: [MessageFlags.Ephemeral]});
+
+            await interaction.reply({
+                flags: [MessageFlags.Ephemeral, MessageFlags.IsComponentsV2],
+                components: [
+                    new ContainerBuilder()
+                    .setAccentColor(Colors.Red)
+                    .addTextDisplayComponents([
+                        new TextDisplayBuilder()
+                        .setContent(`### ❌ Houve um erro ao tentar realizar essa ação`),
+                        new TextDisplayBuilder()
+                        .setContent(`\`\`\`${error.message}\`\`\``)
+                    ])
+                ]
+            });
         } finally {
             await mongoClient.close();
-        }
+        };
     }
-
-}
+};

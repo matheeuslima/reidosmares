@@ -1,7 +1,10 @@
 import {
 	MessageFlags,
 	ModalSubmitInteraction,
-	EmbedBuilder
+	EmbedBuilder,
+	ContainerBuilder,
+	Colors,
+	TextDisplayBuilder
 } from "discord.js";
 import client from "../src/Client.js";
 import { MongoClient, ServerApiVersion } from "mongodb";
@@ -85,9 +88,22 @@ export default {
 
 		} catch (error) {
 			console.error(error);
-			await interaction.reply({content: `Ocorreu um erro na execução dessa ação. ${error.message}.`, flags: [MessageFlags.Ephemeral]});
+
+			await interaction.reply({
+                flags: [MessageFlags.IsComponentsV2, MessageFlags.Ephemeral],
+                components: [
+                    new ContainerBuilder()
+                    .setAccentColor(Colors.Red)
+                    .addTextDisplayComponents([
+                        new TextDisplayBuilder()
+                        .setContent(`### ❌ Houve um erro ao tentar realizar essa ação`),
+                        new TextDisplayBuilder()
+                        .setContent(`\`\`\`${error.message}\`\`\``)
+                    ])
+                ]
+            });
 		} finally {
 			await mongoClient.close();
-		}
+		};
 	}
-}
+};

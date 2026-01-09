@@ -37,7 +37,7 @@ export default {
                     .setAccentColor(Colors.Red)
                     .addTextDisplayComponents([
                         new TextDisplayBuilder()
-                        .setContent(`### ❌ Ocorreu um erro`),
+                        .setContent(`### ❌ Houve um erro ao tentar realizar essa ação`),
                         new TextDisplayBuilder()
                         .setContent(`\`\`\`Não há produtos para excluir.\`\`\``)
                     ])
@@ -70,7 +70,7 @@ export default {
             for (let i = 0; i < productSelectAmount; i++) {
                 deletionModal.addLabelComponents(
                     new LabelBuilder()
-                    .setLabel(`Produto a ser excluído (${i}-${ (i+1)*25 > productOptions.length ? (i+1)*25 : productOptions.length })`)
+                    .setLabel(`Produto a ser excluído (${i*25+1}-${ (i+1)*25 < productOptions.length ? (i+1)*25 : productOptions.length })`)
                     .setStringSelectMenuComponent(
                         new StringSelectMenuBuilder()
                         .setCustomId(`product_id:${i}`)
@@ -94,7 +94,7 @@ export default {
                     .setAccentColor(Colors.Red)
                     .addTextDisplayComponents([
                         new TextDisplayBuilder()
-                        .setContent(`### ❌ Ocorreu um erro`),
+                        .setContent(`### ❌ Houve um erro ao tentar realizar essa ação`),
                         new TextDisplayBuilder()
                         .setContent(`\`\`\`${error.message}\`\`\``)
                     ])

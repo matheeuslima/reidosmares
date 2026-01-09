@@ -40,7 +40,7 @@ export default {
                 .setAccentColor(Colors.Red)
                 .addTextDisplayComponents([
                     new TextDisplayBuilder()
-                    .setContent(`### ❌ Ocorreu um erro`),
+                    .setContent(`### ❌ Houve um erro ao tentar realizar essa ação`),
                     new TextDisplayBuilder()
                     .setContent(`\`\`\`Seu carrinho está vazio ou não foi encontrado.\`\`\``)
                 ])
@@ -55,7 +55,7 @@ export default {
                 .setAccentColor(Colors.Red)
                 .addTextDisplayComponents([
                     new TextDisplayBuilder()
-                    .setContent(`### ❌ Ocorreu um erro`),
+                    .setContent(`### ❌ Houve um erro ao tentar realizar essa ação`),
                     new TextDisplayBuilder()
                     .setContent(`\`\`\`O carrinho ainda não foi reivindicado por nenhum vendedor.\`\`\``)
                 ])
@@ -70,7 +70,7 @@ export default {
                 .setAccentColor(Colors.Red)
                 .addTextDisplayComponents([
                     new TextDisplayBuilder()
-                    .setContent(`### ❌ Ocorreu um erro`),
+                    .setContent(`### ❌ Houve um erro ao tentar realizar essa ação`),
                     new TextDisplayBuilder()
                     .setContent(`\`\`\`Somente vendedores podem utilizar esse botão.\`\`\``)
                 ])
@@ -85,7 +85,7 @@ export default {
                 .setAccentColor(Colors.Red)
                 .addTextDisplayComponents([
                     new TextDisplayBuilder()
-                    .setContent(`### ❌ Ocorreu um erro`),
+                    .setContent(`### ❌ Houve um erro ao tentar realizar essa ação`),
                     new TextDisplayBuilder()
                     .setContent(`\`\`\`Esta compra já foi marcada como paga.\`\`\``)
                 ])
@@ -101,7 +101,7 @@ export default {
                 .setAccentColor(Colors.Red)
                 .addTextDisplayComponents([
                     new TextDisplayBuilder()
-                    .setContent(`### ❌ Ocorreu um erro`),
+                    .setContent(`### ❌ Houve um erro ao tentar realizar essa ação`),
                     new TextDisplayBuilder()
                     .setContent(`\`\`\`O valor mínimo para concluir uma compra é de R$1.\`\`\``)
                 ])
@@ -152,7 +152,7 @@ export default {
                         )
                         .addTextDisplayComponents(
                             new TextDisplayBuilder()
-                            .setContent(`${ticketAuthor.user.username} comprou de ${interaction.guild.members.cache.get(ticket.seller).user.username}`)
+                            .setContent(`**${ticketAuthor.user.username}** comprou de **${interaction.guild.members.cache.get(ticket.seller).user.username}**`)
                         )
                         .setThumbnailAccessory(
                             new ThumbnailBuilder()
@@ -289,7 +289,7 @@ export default {
                     .setAccentColor(Colors.Red)
                     .addTextDisplayComponents([
                         new TextDisplayBuilder()
-                        .setContent(`### ❌ Ocorreu um erro`),
+                        .setContent(`### ❌ Houve um erro ao tentar realizar essa ação`),
                         new TextDisplayBuilder()
                         .setContent(`\`\`\`${error.message}\`\`\``)
                     ])

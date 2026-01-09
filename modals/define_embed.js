@@ -3,9 +3,10 @@ import {
     ButtonBuilder,
     ButtonStyle,
     Colors,
-    EmbedBuilder,
+    ContainerBuilder,
     MessageFlags,
     ModalSubmitInteraction,
+    TextDisplayBuilder,
 } from "discord.js";
 import { MongoClient, ServerApiVersion } from "mongodb";
 import botConfig from "../config.json" with { type: "json" };
@@ -33,6 +34,7 @@ export default {
             const messageContent = embedCode['content'];
             const messageEmbed = embedCode['embed'];
 
+            // registrar na db
             await mongoClient.db().collection("embeds").findOneAndUpdate(
                 {id: editedEmbed},
                 {$set: {
@@ -42,7 +44,9 @@ export default {
                 {upsert: true, returnDocument: 'after'}
             )
 
+            // cada embed faz algo
             switch (editedEmbed) {
+                // enviar no chat de criar
                 case "new_cart": {
                     await interaction.guild.channels.cache.get(botConfig.channel.newCart).send({
                         content: messageContent,
@@ -70,22 +74,36 @@ export default {
                 }
             }
 
+            // responder o cara
             await interaction.reply({
-                content: messageContent,
-                embeds: [
-                    new EmbedBuilder()
-                    .setColor(Colors.Green)
-                    .setDescription(`${editedEmbed} alterado com sucesso`),
-                    messageEmbed
-                ],
-                flags: [MessageFlags.Ephemeral]
+                flags: [MessageFlags.IsComponentsV2],
+                components: [
+                    new ContainerBuilder()
+                    .setAccentColor(Colors.Green)
+                    .addTextDisplayComponents(
+                        new TextDisplayBuilder()
+                        .setContent(`### 📝 Embed ${editedEmbed} alterado com sucesso`)
+                    )
+                ]
             });
         } catch (error) {
             console.error(error);
-            await interaction.reply({content: `Ocorreu um erro na execução dessa ação. ${error.message}.`, flags: [MessageFlags.Ephemeral]});
+            
+            await interaction.reply({
+                flags: [MessageFlags.IsComponentsV2, MessageFlags.Ephemeral],
+                components: [
+                    new ContainerBuilder()
+                    .setAccentColor(Colors.Red)
+                    .addTextDisplayComponents([
+                        new TextDisplayBuilder()
+                        .setContent(`### ❌ Houve um erro ao tentar realizar essa ação`),
+                        new TextDisplayBuilder()
+                        .setContent(`\`\`\`${error.message}\`\`\``)
+                    ])
+                ]
+            });
         } finally {
             await mongoClient.close();
-        }
+        };
     }
-
-}
+};
