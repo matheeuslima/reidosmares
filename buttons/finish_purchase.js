@@ -202,7 +202,7 @@ export default {
             await mongoClient.db().collection('sales').insertOne(ticket);
             // reduzir estoques
             ticket.cart.forEach(product => {
-                mongoClient.db().collection('products').updateOne({id: product.id}, {
+                product.stock < 1_000_000 && mongoClient.db().collection('products').updateOne({id: product.id}, {
                     $inc: { stock: product.amount*-1 }
                 });
             })
