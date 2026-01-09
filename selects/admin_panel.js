@@ -189,9 +189,9 @@ export default {
                             )
                             .addTextDisplayComponents(
                                 new TextDisplayBuilder()
-                                .setContent(`${stores.map(store => `## ${store.emoji} **${store.name}**\n` +
-                                    (categories.filter(cat => cat.store === store.id).map(cat => `### ${cat.emoji} **${cat.name}**\n` +
-                                        (products.filter(prod => prod.category === cat.id).map(prod => `- ${prod.emoji} **${prod.name}** (\`${prod.id}\`): \`R$${prod.price.toFixed(2)}\` | \`${prod.stock <= 0 ? `Esgotado (${prod.stock})` : prod.stock >= 1_000_000 ? `∞ (${prod.stock})` : prod.stock}\`\n`).join('') || '- Nenhum produto disponível.\n')
+                                .setContent(`${stores.map(store => `## ${store.id}\n` +
+                                    (categories.filter(cat => cat.store === store.id).map(cat => `### ${cat.id}\n` +
+                                        (products.filter(prod => prod.category === cat.id).map(prod => `- ${prod.emoji} **${prod.id}**︱\`R$${prod.price.toFixed(2)}\`︱\`${prod.stock <= 0 ? `Esgotado (${prod.stock})` : prod.stock >= 1_000_000 ? `∞ (${prod.stock})` : prod.stock}\`\n`).join('') || '- Nenhum produto disponível.\n')
                                     ).join('') || '- Nenhuma categoria cadastrada.\n')
                                 ).join('\n') || 'Nenhuma loja cadastrada.'}`)
                             )
