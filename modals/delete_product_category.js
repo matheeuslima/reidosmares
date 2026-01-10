@@ -79,7 +79,6 @@ export default {
                     .addTextDisplayComponents(
                         new TextDisplayBuilder()
                         .setContent(`${Array.from(stores).map(store => `### ${store || 'Sem loja definida'}\n- ${categories.filter(category => category.store == store).map(category => `**${category.emoji || ''} ${category.name} (${category.id})**: ${category.description}`).join('\n- ')}`).join('\n') || 'Nenhuma categoria disponível.'}`)
-                            )
                     )
                     .addSeparatorComponents(
                         new SeparatorBuilder()
