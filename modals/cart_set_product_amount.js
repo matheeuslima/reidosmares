@@ -98,7 +98,7 @@ export default {
 						.setStyle(ButtonStyle.Secondary),
 						new ButtonBuilder()
 						.setLabel('Finalizar carrinho e ir à compra')
-						.setCustomId('finish_cart')
+						.setCustomId('follow_purchase')
 						.setStyle(ButtonStyle.Primary)
 						.setEmoji('🤑'),
 						new ButtonBuilder()
