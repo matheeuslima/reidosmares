@@ -77,7 +77,7 @@ export default {
                         new TextDisplayBuilder()
                         .setContent(`# Produto atualizado`),
                         new TextDisplayBuilder()
-                        .setContent(`## ${productEmoji} ${productName}\n- **ID:** \`${productId}\`\n- **Preço:** \`R$${parseFloat(productPrice).toFixed(2)}\`\n- **Categoria:** \`${productCategory}\``)
+                        .setContent(`## ${productEmoji} ${productName}\n- **ID:** \`${productId}\`\n- **Preço:** \`R$${parseFloat(productPrice).toFixed(2)}\n- **Estoque:** \`${productStock}\`\n- **Categoria:** \`${productCategory}\``)
                     ])
                 ]
             });
