@@ -39,10 +39,9 @@ export default {
                 const amountStr = interaction.fields.getTextInputValue(product.id);
                 let amount = parseInt(amountStr);
                 if (amount > product.stock) amount = product.stock;
-                if (amount === 0) return null; // Remove o produto se a quantidade for 0
-                if (isNaN(amount) || amount < 1) amount = 1;
+                if (isNaN(amount)) amount = 0;
                 return { ...product, amount };
-            });
+            }).filter(product => product.amount > 0); // Remove produtos com quantidade 0
 
             client.tickets.set(interaction.channelId, ticket);
 
@@ -107,7 +106,7 @@ export default {
                                 .setStyle(ButtonStyle.Secondary),
                             new ButtonBuilder()
                                 .setLabel('Finalizar carrinho e ir à compra')
-                                .setCustomId('finish_cart')
+                                .setCustomId('follow_purchase')
                                 .setStyle(ButtonStyle.Primary)
                                 .setEmoji('🤑'),
                             new ButtonBuilder()
