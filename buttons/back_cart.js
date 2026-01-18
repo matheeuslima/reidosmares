@@ -50,6 +50,11 @@ export default {
                         .setEmoji('⬅️')
                         .setCustomId('back_cart_stores')
                         .setStyle(ButtonStyle.Secondary),
+                        client.tickets?.get(interaction.channelId)?.cart?.length && new ButtonBuilder()
+                        .setLabel('Editar carrinho')
+                        .setEmoji('✏️')
+                        .setCustomId('edit_cart')
+                        .setStyle(ButtonStyle.Secondary)
                     ])
                 ]
             });

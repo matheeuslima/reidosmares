@@ -11,6 +11,7 @@ import {
 } from "discord.js";
 import { MongoClient, ServerApiVersion } from "mongodb";
 import "dotenv/config";
+import client from "../src/Client.js";
 
 const mongoClient = new MongoClient(process.env.MONGODB_URI, {
   serverApi: {
@@ -44,6 +45,11 @@ export default {
                     ]),
                     new ActionRowBuilder()
                     .setComponents([
+                        client.tickets?.get(interaction.channelId)?.cart?.length && new ButtonBuilder()
+                        .setLabel('Editar carrinho')
+                        .setEmoji('✏️')
+                        .setCustomId('edit_cart')
+                        .setStyle(ButtonStyle.Secondary),
                         new ButtonBuilder()
                         .setLabel('Fechar carrinho')
                         .setCustomId('close_cart')

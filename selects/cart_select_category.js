@@ -76,7 +76,12 @@ export default {
                         .setLabel('Finalizar carrinho e ir à compra')
                         .setEmoji('🤑')
                         .setCustomId('follow_purchase')
-                        .setStyle(ButtonStyle.Primary)
+                        .setStyle(ButtonStyle.Primary),
+                        client.tickets?.get(interaction.channelId)?.cart?.length && new ButtonBuilder()
+                        .setLabel('Editar carrinho')
+                        .setEmoji('✏️')
+                        .setCustomId('edit_cart')
+                        .setStyle(ButtonStyle.Secondary)
                     ])
                 ]
             })
