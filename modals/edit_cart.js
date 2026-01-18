@@ -48,10 +48,10 @@ export default {
             await interaction.deferReply().then(reply => reply.delete());
 
             // Atualiza embed do carrinho
-            interaction.message && interaction.message.editable && (ticket.cart.length ? await interaction.message.edit({
+            interaction.message && interaction.message.editable && await interaction.message.edit({
                 embeds: [
                     new EmbedBuilder(interaction.message.embeds[0].data)
-                        .setFields([
+                        .setFields(ticket.cart.length ? [
                             {
                                 name: `🛒 Carrinho`,
                                 value: ticket.cart.map(product => `- ${product.amount}x ${product.name} (R$${product.price.toFixed(2)})`).join('\n') || 'Nenhum produto adicionado ainda.',
@@ -62,7 +62,7 @@ export default {
                                 value: `R$${ticket.cart.reduce((acc, product) => acc + product.price * product.amount, 0).toFixed(2)}`,
                                 inline: true
                             }
-                        ])
+                        ] : [])
                 ],
                 components: ticket.cart.length ? [
                     interaction.message.components[0],
@@ -89,13 +89,7 @@ export default {
                                 .setEmoji('🚮')
                                 .setStyle(ButtonStyle.Danger)
                         ])
-                ] : interaction.message.components
-            }) : await interaction.message.edit({
-                embeds: [
-                    new EmbedBuilder(interaction.message.embeds[0].data)
-                        .setFields([])
-                ],
-                components: ticket.cart.length ? [
+                ] : [
                     interaction.message.components[0],
                     new ActionRowBuilder()
                         .setComponents([
@@ -115,9 +109,8 @@ export default {
                                 .setEmoji('🚮')
                                 .setStyle(ButtonStyle.Danger)
                         ])
-                ] : interaction.message.components
+                ]
             })
-            )
 
         } catch (error) {
             console.error(error);
