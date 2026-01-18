@@ -25,7 +25,7 @@ export default {
 
     data: new SlashCommandBuilder()
     .setName("estoque")
-    .setDescription("[Administrativo] Edita o estoque.")
+    .setDescription("[Administrativo] Edita o estoque de algum produto.")
     .addStringOption(
         new SlashCommandStringOption()
         .setName('operação')
