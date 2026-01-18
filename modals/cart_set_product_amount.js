@@ -4,7 +4,10 @@ import {
 	EmbedBuilder,
 	ContainerBuilder,
 	Colors,
-	TextDisplayBuilder
+	TextDisplayBuilder,
+	ActionRowBuilder,
+	ButtonBuilder,
+	ButtonStyle
 } from "discord.js";
 import client from "../src/Client.js";
 import { MongoClient, ServerApiVersion } from "mongodb";
@@ -84,6 +87,32 @@ export default {
 						}
 					])
 				],
+				components: client.tickets?.get(interaction.channelId)?.cart?.length ? [
+					interaction.message.components[0],
+					new ActionRowBuilder()
+					.setComponents([
+						new ButtonBuilder()
+						.setLabel('Voltar')
+						.setEmoji('⬅️')
+						.setCustomId('back_cart')
+						.setStyle(ButtonStyle.Secondary),
+						new ButtonBuilder()
+						.setLabel('Finalizar carrinho e ir à compra')
+						.setCustomId('finish_cart')
+						.setStyle(ButtonStyle.Primary)
+						.setEmoji('🤑'),
+						new ButtonBuilder()
+						.setLabel('Editar carrinho')
+						.setEmoji('✏️')
+						.setCustomId('edit_cart')
+						.setStyle(ButtonStyle.Secondary),
+						new ButtonBuilder()
+						.setLabel('Fechar carrinho')
+						.setCustomId('close_cart')
+						.setEmoji('🚮')
+						.setStyle(ButtonStyle.Danger)
+					])
+				] : interaction.message.components
 			});
 
 		} catch (error) {

@@ -64,24 +64,40 @@ export default {
                     description: category.description || undefined,
                     emoji: category.emoji || undefined
                 })));
+            
+            const components = [
+                new ActionRowBuilder()
+                .addComponents(select),
+                new ActionRowBuilder()
+                .addComponents([
+                    new ButtonBuilder()
+                    .setLabel('Voltar')
+                    .setEmoji('⬅️')
+                    .setCustomId('back_cart_stores')
+                    .setStyle(ButtonStyle.Secondary),
+                ])
+            ];
+
+            if (client.tickets?.get(interaction.channelId)?.cart?.length) {
+                components[1].addComponents(
+                    new ButtonBuilder()
+                    .setLabel('Editar carrinho')
+                    .setEmoji('✏️')
+                    .setCustomId('edit_cart')
+                    .setStyle(ButtonStyle.Secondary)
+                );
+            };
+
+            components[1].addComponents(
+                new ButtonBuilder()
+                .setLabel('Fechar carrinho')
+                .setCustomId('close_cart')
+                .setEmoji('🚮')
+                .setStyle(ButtonStyle.Danger)
+            );
 
             interaction.message.editable && await interaction.message.edit({
-                components: [
-                    new ActionRowBuilder().addComponents(select),
-                    new ActionRowBuilder()
-                    .setComponents([
-                        new ButtonBuilder()
-                        .setLabel('Voltar')
-                        .setEmoji('⬅️')
-                        .setCustomId('back_cart_stores')
-                        .setStyle(ButtonStyle.Secondary),
-                        client.tickets?.get(interaction.channelId)?.cart?.length && new ButtonBuilder()
-                        .setLabel('Editar carrinho')
-                        .setEmoji('✏️')
-                        .setCustomId('edit_cart')
-                        .setStyle(ButtonStyle.Secondary)
-                    ])
-                ]
+                components: components
             });
         } catch (error) {
             console.error(error);

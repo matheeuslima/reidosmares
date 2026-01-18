@@ -11,6 +11,7 @@ import {
 } from "discord.js";
 import { MongoClient, ServerApiVersion } from "mongodb";
 import "dotenv/config";
+import client from "../src/Client.js";
 
 const mongoClient = new MongoClient(process.env.MONGODB_URI, {
   serverApi: {
@@ -46,44 +47,56 @@ export default {
 
             await interaction.deferReply().then(reply => reply?.delete());
 
+            const components = [
+                new ActionRowBuilder()
+                .setComponents([
+                    new StringSelectMenuBuilder()
+                    .setPlaceholder('Selecionar produtos')
+                    .setCustomId('cart_select_product')
+                    .setMinValues(1)
+                    .setMaxValues(products.length>5 ? 5 : products.length)
+                    .setOptions(products.map(product => {
+                        return {
+                            label: product.name,
+                            value: product.stock ? product.id : `${product.id}-unavailable`,
+                            emoji: product.emoji,
+                            description: `Preço: R$${product.price} | Estoque: ${product.stock >= 1_000_000 ? '∞' : (product.stock || 'Sem estoque')}`
+                        }
+                    }) || [{label: 'Não há produtos disponíveis', value: 'unavailable', emoji: '❔'}])
+                ]),
+                new ActionRowBuilder()
+                .setComponents([
+                    new ButtonBuilder()
+                    .setLabel('Voltar')
+                    .setEmoji('⬅️')
+                    .setCustomId('back_cart')
+                    .setStyle(ButtonStyle.Secondary),
+                    new ButtonBuilder()
+                    .setLabel('Finalizar carrinho e ir à compra')
+                    .setEmoji('🤑')
+                    .setCustomId('follow_purchase')
+                    .setStyle(ButtonStyle.Primary),
+                    new ButtonBuilder()
+                    .setLabel('Fechar carrinho')
+                    .setCustomId('close_cart')
+                    .setEmoji('🚮')
+                    .setStyle(ButtonStyle.Danger)
+                ])
+            ];
+
+            if (client.tickets?.get(interaction.channelId)?.cart?.length) {
+                components[1].addComponents(
+                    new ButtonBuilder()
+                    .setLabel('Editar carrinho')
+                    .setEmoji('✏️')
+                    .setCustomId('edit_cart')
+                    .setStyle(ButtonStyle.Secondary)
+                );
+            };
+
             interaction?.message?.editable &&
             interaction.message.edit({
-                components: [
-                    new ActionRowBuilder()
-                    .setComponents([
-                        new StringSelectMenuBuilder()
-                        .setPlaceholder('Selecionar produtos')
-                        .setCustomId('cart_select_product')
-                        .setMinValues(1)
-                        .setMaxValues(products.length>5 ? 5 : products.length)
-                        .setOptions(products.map(product => {
-                            return {
-                                label: product.name,
-                                value: product.stock ? product.id : `${product.id}-unavailable`,
-                                emoji: product.emoji,
-                                description: `Preço: R$${product.price} | Estoque: ${product.stock >= 1_000_000 ? '∞' : (product.stock || 'Sem estoque')}`
-                            }
-                        }) || [{label: 'Não há produtos disponíveis', value: 'unavailable', emoji: '❔'}])
-                    ]),
-                    new ActionRowBuilder()
-                    .setComponents([
-                        new ButtonBuilder()
-                        .setLabel('Voltar')
-                        .setEmoji('⬅️')
-                        .setCustomId('back_cart')
-                        .setStyle(ButtonStyle.Secondary),
-                        new ButtonBuilder()
-                        .setLabel('Finalizar carrinho e ir à compra')
-                        .setEmoji('🤑')
-                        .setCustomId('follow_purchase')
-                        .setStyle(ButtonStyle.Primary),
-                        client.tickets?.get(interaction.channelId)?.cart?.length && new ButtonBuilder()
-                        .setLabel('Editar carrinho')
-                        .setEmoji('✏️')
-                        .setCustomId('edit_cart')
-                        .setStyle(ButtonStyle.Secondary)
-                    ])
-                ]
+                components: components
             })
         } catch (error) {
             console.error(error);

@@ -88,6 +88,8 @@ export default {
 			]
         });
 
+		interaction.message.pinnable && await interaction.message.pin();
+
         client.tickets.set(interaction.channelId, ticket);
 	}
 };

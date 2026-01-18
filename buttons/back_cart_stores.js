@@ -32,20 +32,23 @@ export default {
 
             const stores = await mongoClient.db().collection('stores').find().toArray();
 
-            interaction.message.editable && await interaction.message.edit({
-                components: [
+            const components = [
+                new ActionRowBuilder()
+                .setComponents([
+                    new StringSelectMenuBuilder()
+                    .setPlaceholder('Selecione uma loja!')
+                    .setCustomId('cart_select_store')
+                    .setOptions(stores.map(store => {
+                        return {label: store.name, value: store.id, emoji: store.emoji}
+                    }) || [{label: 'Não há produtos disponíveis', value: 'unavailable', emoji: '❔'}])
+                ])
+            ];
+
+            if (client.tickets?.get(interaction.channelId)?.cart?.length) {
+                components.push(
                     new ActionRowBuilder()
                     .setComponents([
-                        new StringSelectMenuBuilder()
-                        .setPlaceholder('Selecione uma loja!')
-                        .setCustomId('cart_select_store')
-                        .setOptions(stores.map(store => {
-                            return {label: store.name, value: store.id, emoji: store.emoji}
-                        }) || [{label: 'Não há produtos disponíveis', value: 'unavailable', emoji: '❔'}])
-                    ]),
-                    new ActionRowBuilder()
-                    .setComponents([
-                        client.tickets?.get(interaction.channelId)?.cart?.length && new ButtonBuilder()
+                        new ButtonBuilder()
                         .setLabel('Editar carrinho')
                         .setEmoji('✏️')
                         .setCustomId('edit_cart')
@@ -56,7 +59,22 @@ export default {
                         .setEmoji('🚮')
                         .setStyle(ButtonStyle.Danger)
                     ])
-                ]
+                );
+            } else {
+                components.push(
+                    new ActionRowBuilder()
+                    .setComponents([
+                        new ButtonBuilder()
+                        .setLabel('Fechar carrinho')
+                        .setCustomId('close_cart')
+                        .setEmoji('🚮')
+                        .setStyle(ButtonStyle.Danger)
+                    ])
+                );
+            }
+
+            interaction.message.editable && await interaction.message.edit({
+                components: components
             });
         } catch (error) {
             console.error(error);
