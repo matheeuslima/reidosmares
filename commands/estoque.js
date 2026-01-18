@@ -47,7 +47,8 @@ export default {
     .addIntegerOption(
         new SlashCommandIntegerOption()
         .setName('quantidade')
-        .setDescription('A quantidade a ser adicionada, definida ou removida')
+        .setDescription('A quantidade de produto a ser adicionada, definida ou removida')
+        .setMinValue(-9999)
         .setRequired(true)
     ),
     
