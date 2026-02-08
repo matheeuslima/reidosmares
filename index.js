@@ -65,8 +65,8 @@ process.on('SIGINT', async () => {
         await mongoClient.connect();
 
         if (client.tickets && client.tickets.size > 0) {
-            const ticketsToSave = Array.from(client.tickets.values());
-            Array.from(client.tickets.values()).forEach(ticket => {
+            const ticketsToWarn = Array.from(client.tickets.values());
+            ticketsToWarn.forEach(ticket => {
                 const channel = client.channels.cache.get(ticket.channelId);
                 if (channel) {
                     channel.send({
