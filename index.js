@@ -1,20 +1,10 @@
 import fs from "fs";
 import path from "path";
 import { fileURLToPath, pathToFileURL } from "url";
-import botConfig from "./config.json" with { type: "json" };
 import client from "./src/Client.js";
 import cron from "node-cron";
 import "dotenv/config";
-import { MongoClient, ServerApiVersion } from "mongodb";
-import { Collection } from "discord.js";
-
-const mongoClient = new MongoClient(process.env.MONGODB_URI, {
-  serverApi: {
-    version: ServerApiVersion.v1,
-    strict: true,
-    deprecationErrors: true,
-  }
-});
+import { ContainerBuilder, MessageFlags, TextDisplayBuilder } from "discord.js";
 
 // Simular __dirname e __filename no ES module
 const __filename = fileURLToPath(import.meta.url);
@@ -64,6 +54,7 @@ process.on('unhandledRejection', async (reason, promise) => {
     console.error(`Rejeição não manuseada.`, reason, promise);
 });
 
+
 // Desligamento
 process.on('exit', () => {
     console.log('\nDesligando...');
@@ -75,22 +66,28 @@ process.on('SIGINT', async () => {
 
         if (client.tickets && client.tickets.size > 0) {
             const ticketsToSave = Array.from(client.tickets.values());
-            await mongoClient.db().collection('tickets').findOneAndUpdate(
-                { id: "tickets" },
-                { $set: { id: "tickets", value: ticketsToSave } },
-                { returnDocument: 'after', sort: { createdAt: 1 }, upsert: true }
-            );
-            console.log('Todos os tickets abertos foram guardados.');
+            Array.from(client.tickets.values()).forEach(ticket => {
+                const channel = client.channels.cache.get(ticket.channelId);
+                if (channel) {
+                    channel.send({
+                        flags: [MessageFlags.IsComponentsV2],
+                        components: [
+                            new ContainerBuilder()
+                            .addTextDisplayComponents(
+                                new TextDisplayBuilder()
+                                .setContent(`### ⚠️ O bot está sendo desligado ou reiniciado. Por favor, abra um novo carrinho quando o mesmo estiver ligado novamente.`)
+                            )
+                        ]
+                    });
+                };
+            })
+            console.log('Todos os tickets abertos foram avisados do desligamento.');
         } else {
-            console.log('Nenhum ticket para salvar.');
+            console.log('Nenhum ticket para avisar.');
         }
     } catch (error) {
-        console.error('Erro ao salvar os tickets durante o desligamento:', error);
-    } finally {
-        await mongoClient.close();
-        console.log('Conexão com o MongoDB encerrada.');
-        process.exit();
-    }
+        console.error('Erro ao avisar os tickets sobre o desligamento:', error);
+    };
 });
 
 // Logar o cliente

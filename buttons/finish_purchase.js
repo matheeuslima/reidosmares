@@ -237,15 +237,9 @@ export default {
             // filtra os cargos que o user tem direito
             const eligibleRoles = rolesBySpending.filter(role => userData.totalSpent >= role.spendingThreshold);
             if(eligibleRoles.length > 0) {
-                // pega o cargo com maior valor de gasto
-                const topRole = eligibleRoles.reduce((prev, current) => (prev.spendingThreshold > current.spendingThreshold) ? prev : current);
-                
-                if(!member.roles.cache.has(topRole.roleId)) { // se o user n tiver o cargo, add ele
-                    // remove os outros cargos de gasto que o user possa ter
-                    const rolesToRemove = rolesBySpending.map(r => r.roleId).filter(rId => member.roles.cache.has(rId) && rId !== topRole.roleId);
-                    await member.roles.remove(rolesToRemove, 'Atualização automática de cargo por quantidade gasta.');
-                    await member.roles.add(topRole.roleId, 'Atualização automática de cargo por quantidade gasta.');
-                }
+                eligibleRoles.filter(role => !member.roles.cache.has(role.roleId)).forEach(role => {
+                    member.roles.add(role.roleId, 'Atualização automática de cargo por quantidade gasta.'); // add todos os cargos que o user tem direito
+                })
             }
 
             // deletar ticket
