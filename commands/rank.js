@@ -52,7 +52,7 @@ export default {
                     )
                     .addTextDisplayComponents(
                         new TextDisplayBuilder()
-                        .setContent(topUsers.map((user, index) => `-# **${index + 1}.** <@${user.id}> - total de \`R$${user.totalSpent.toFixed(2)}\` gastos em \`${user.purchaseHistory ? user.purchaseHistory.length : 0}\` pedido(s)`).join('\n'))
+                        .setContent(topUsers.map((user, index) => `-# **${index + 1}.** ${interaction.guild.members.cache.get(user.id) ? "**__"+interaction.guild.members.cache.get(user.id)?.displayName+"__**" : "<@"+user.id+">"} - total de \`R$${user.totalSpent.toFixed(2)}\` gastos em \`${user.purchaseHistory ? user.purchaseHistory.length : 0}\` pedido(s)`).join('\n'))
                     )
                     .addSeparatorComponents(
                         new SeparatorBuilder()

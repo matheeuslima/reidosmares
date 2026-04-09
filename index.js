@@ -5,6 +5,15 @@ import client from "./src/Client.js";
 import cron from "node-cron";
 import "dotenv/config";
 import { ContainerBuilder, MessageFlags, TextDisplayBuilder } from "discord.js";
+import { MongoClient, ServerApiVersion } from "mongodb";
+
+const mongoClient = new MongoClient(process.env.MONGODB_URI, {
+    serverApi: {
+        version: ServerApiVersion.v1,
+        strict: true,
+        deprecationErrors: true,
+    }
+});
 
 // Simular __dirname e __filename no ES module
 const __filename = fileURLToPath(import.meta.url);
@@ -85,6 +94,8 @@ process.on('SIGINT', async () => {
         } else {
             console.log('Nenhum ticket para avisar.');
         }
+        
+        process.exit();
     } catch (error) {
         console.error('Erro ao avisar os tickets sobre o desligamento:', error);
     };

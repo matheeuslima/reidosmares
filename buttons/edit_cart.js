@@ -6,6 +6,7 @@ import {
     LabelBuilder,
     MessageFlags,
     ModalBuilder,
+    StringSelectMenuBuilder,
     TextDisplayBuilder,
     TextInputBuilder,
     TextInputStyle
@@ -22,24 +23,38 @@ export default {
             const modal = new ModalBuilder()
             .setCustomId(`edit_cart`)
             .setTitle('Editar carrinho de compras')
+            .addLabelComponents(
+                new LabelBuilder()
+                .setLabel('Selecione o produto a editar')
+                .setStringSelectMenuComponent(
+                    new StringSelectMenuBuilder()
+                    .setCustomId('edited_product')
+                    .setRequired(true)
+                    .setPlaceholder('Selecione o produto que deseja editar')
+                    .setOptions(
+                        client.tickets?.get(interaction.channelId)?.cart?.map(product => {
+                            return {
+                                label: `${product.amount}x - ${product.name}`.substring(0, 45),
+                                value: product.id
+                            };
+                        })
+                    )
+                )
+            )
+            .addLabelComponents(
+                new LabelBuilder()
+                .setLabel('Defina a nova quantidade')
+                .setTextInputComponent(
+                    new TextInputBuilder()
+                    .setCustomId('edited_amount')
+                    .setPlaceholder('Nova quantidade do produto')
+                    .setStyle(TextInputStyle.Short)
+                )
+            )
             .addTextDisplayComponents([
                 new TextDisplayBuilder()
                 .setContent(`Defina a quantidade do produto para 0 para removê-lo do carrinho.`),
             ])
-            .addLabelComponents(
-                client.tickets?.get(interaction.channelId)?.cart?.map(product => {
-                    return new LabelBuilder()
-                    .setLabel(`${product.name}`.substring(0, 45))
-                    .setTextInputComponent(
-                        new TextInputBuilder()
-                        .setCustomId(product.id)
-                        .setStyle(TextInputStyle.Short)
-                        .setValue(product.amount.toString())
-                        .setPlaceholder(`Quantidade de ${product.name} (máx. ${product.stock})`)
-                        .setRequired(true)
-                    )
-                }) || []
-            )
             .addTextDisplayComponents(
                 new TextDisplayBuilder()
                 .setContent(`-# Se nenhum produto do seu carrinho tiver aparecido nesse pop-up, cancele e clique no botão de editar novamente.`)

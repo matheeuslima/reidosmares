@@ -34,6 +34,42 @@ export default {
     async execute(interaction) {
         await interaction.deferReply({flags: [MessageFlags.Ephemeral, MessageFlags.IsComponentsV2]});
 
+        // verificar se a loja tá aberta
+        try {
+            await mongoClient.connect();
+            const config = await mongoClient.db().collection('config').findOne({ guildId: interaction.guildId });
+            if(config && config.storeDisabled) {
+                return await interaction.editReply({
+                    flags: [MessageFlags.Ephemeral, MessageFlags.IsComponentsV2],
+                    components: [
+                        new ContainerBuilder()
+                        .addTextDisplayComponents([
+                            new TextDisplayBuilder()
+                            .setContent(`### ❌ A loja está fechada no momento. Tente novamente mais tarde!`)
+                        ])
+                        .setAccentColor(Colors.Red)
+                    ]
+                });
+            }
+        } catch (error) {
+            console.error(error);
+            return await interaction.editReply({
+                flags: [MessageFlags.Ephemeral, MessageFlags.IsComponentsV2],
+                components: [
+                    new ContainerBuilder()
+                    .addTextDisplayComponents([
+                        new TextDisplayBuilder()
+                        .setContent(`### ❌ Houve um erro ao tentar realizar essa ação`),
+                        new TextDisplayBuilder()
+                        .setContent(`\`\`\`${error.message}\`\`\``)
+                    ])
+                    .setAccentColor(Colors.Red)
+                ]
+            });
+        } finally {
+            await mongoClient.close();
+        }
+
         // verificar se o cara não tem um ticket aberto
         if(client.tickets?.find(t => t.author === interaction.user.id)) return await interaction.editReply({
             flags: [MessageFlags.Ephemeral, MessageFlags.IsComponentsV2],
@@ -52,7 +88,7 @@ export default {
         // criar o ticket
         const ticketChannel = await interaction.channel.threads.create({
             name: `${interaction.member.roles.cache.has(botConfig.role.booster) ? "🚀 " : ""}Carrinho de ${interaction.user.username}`,
-            autoArchiveDuration: ThreadAutoArchiveDuration.OneWeek,
+            autoArchiveDuration: ThreadAutoArchiveDuration.OneHour,
             type: ChannelType.PrivateThread,
             reason: `${interaction.user.username} abriu um carrinho`,
             invitable: false   
@@ -125,6 +161,15 @@ export default {
 
             // adicionar objeto do ticket na memória
             client.tickets ? client.tickets.set(ticketChannel.id, ticket) : client.tickets = new Collection().set(ticketChannel.id, ticket);
+
+            setTimeout(() => {
+                interaction.channel.messages.fetch({limit: 1}).then(messages => {
+                    const lastMessage = messages.first();
+                    if(lastMessage && lastMessage.createdTimestamp > Date.now() - (14 * 60 * 1000)) return; // se a última mensagem do canal for mais recente que 15 minutos, não fecha o ticket
+                    ticketChannel.delete('Carrinho deletado por inatividade').catch(console.error);
+                    client.tickets.delete(ticketChannel.id);
+                })
+            }, 15 * 60 * 1000);
             
         } catch (error) {
             console.error(error);

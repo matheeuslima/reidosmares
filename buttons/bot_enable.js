@@ -1,7 +1,8 @@
+import { MongoClient, ServerApiVersion } from "mongodb";
+import "dotenv/config";
 import {
     ActionRowBuilder,
     ButtonBuilder,
-    ButtonInteraction,
     ButtonStyle,
     Colors,
     ContainerBuilder,
@@ -12,8 +13,6 @@ import {
     StringSelectMenuOptionBuilder,
     TextDisplayBuilder
 } from "discord.js";
-import { MongoClient, ServerApiVersion } from "mongodb";
-import "dotenv/config";
 
 const mongoClient = new MongoClient(process.env.MONGODB_URI, {
   serverApi: {
@@ -29,11 +28,29 @@ export default {
      * @param {ButtonInteraction} interaction
      */
     async execute(interaction) {
+        await interaction.deferReply({flags: [MessageFlags.IsComponentsV2]});
+
         try {
             await mongoClient.connect();
 
-            let storeIsEnabled = (await mongoClient.db().collection('config').findOne({ guildId: interaction.guildId }))?.storeDisabled !== true;
-        
+            await mongoClient.db().collection('config').updateOne(
+                { guildId: interaction.guildId },
+                { $set: { storeDisabled: false } },
+                { upsert: true }
+            );
+
+            await interaction.editReply({
+                flags: [MessageFlags.IsComponentsV2],
+                components: [
+                    new ContainerBuilder()
+                    .setAccentColor(Colors.Green)
+                    .addTextDisplayComponents([
+                        new TextDisplayBuilder()
+                        .setContent(`### ✅ A loja foi reaberta com sucesso!`)
+                    ])
+                ]
+            });
+
             interaction.message.editable && await interaction.message.edit({
                 flags: [MessageFlags.IsComponentsV2],
                 components: [
@@ -81,7 +98,7 @@ export default {
                                 .setDescription('Defina os cargos dados por quantidade gasta!')
                                 .setValue('define_roles_by_spending'),
                             ])
-                        ])
+                        ]),
                     )
                     .addSeparatorComponents(
                         new SeparatorBuilder()
@@ -90,22 +107,16 @@ export default {
                     .addActionRowComponents(
                         new ActionRowBuilder()
                         .setComponents([
-                            storeIsEnabled ? 
                             new ButtonBuilder()
                             .setLabel('Fechar loja')
                             .setEmoji('🚪')
                             .setCustomId('bot_disable')
                             .setStyle(ButtonStyle.Danger)
-                            :
-                            new ButtonBuilder()
-                            .setLabel('Abrir loja')
-                            .setEmoji('🚪')
-                            .setCustomId('bot_enable')
-                            .setStyle(ButtonStyle.Success)
                         ])
                     )
                 ]
             });
+
         } catch (error) {
             console.error(error);
 
@@ -136,6 +147,6 @@ export default {
             }
         } finally {
             await mongoClient.close();
-        }
+        };
     }
 };

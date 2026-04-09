@@ -34,83 +34,96 @@ export default {
                 });
             }
 
-            // Atualiza as quantidades dos produtos no carrinho
+            // Nova lógica: editar apenas o produto selecionado
+            const selectedProductId = interaction.fields.getField('edited_product')?.value;
+            const amountStr = interaction.fields.getTextInputValue('edited_amount');
+            let amount = parseInt(amountStr);
+            if (isNaN(amount)) amount = undefined;
+
+            let updated = false;
             ticket.cart = ticket.cart.map(product => {
-                const amountStr = interaction.fields.getTextInputValue(product.id);
-                let amount = parseInt(amountStr);
-                if (amount > product.stock) amount = product.stock;
-                if (isNaN(amount)) amount = 0;
-                return { ...product, amount };
-            }).filter(product => product.amount > 0); // Remove produtos com quantidade 0
+                if (product.id === selectedProductId) {
+                    if (amount === 0) {
+                        updated = true;
+                        return null; // remove
+                    } else if (typeof amount === 'number' && !isNaN(amount)) {
+                        updated = true;
+                        return { ...product, amount: Math.min(amount, product.stock) };
+                    }
+                }
+                return product;
+            }).filter(Boolean);
 
             client.tickets.set(interaction.channelId, ticket);
 
             await interaction.deferReply().then(reply => reply.delete());
 
             // Atualiza embed do carrinho
-            interaction.message && interaction.message.editable && await interaction.message.edit({
-                embeds: [
-                    new EmbedBuilder(interaction.message.embeds[0].data)
-                        .setFields(ticket.cart.length ? [
-                            {
-                                name: `🛒 Carrinho`,
-                                value: ticket.cart.map(product => `- ${product.amount}x ${product.name} (R$${product.price.toFixed(2)})`).join('\n') || 'Nenhum produto adicionado ainda.',
-                                inline: true
-                            },
-                            {
-                                name: `💰 Total`,
-                                value: `R$${ticket.cart.reduce((acc, product) => acc + product.price * product.amount, 0).toFixed(2)}`,
-                                inline: true
-                            }
-                        ] : [])
-                ],
-                components: ticket.cart.length ? [
-                    interaction.message.components[0],
-                    new ActionRowBuilder()
-                        .setComponents([
-                            new ButtonBuilder()
-                                .setLabel('Voltar')
-                                .setEmoji('⬅️')
-                                .setCustomId('back_cart')
-                                .setStyle(ButtonStyle.Secondary),
-                            new ButtonBuilder()
-                                .setLabel('Finalizar carrinho e ir à compra')
-                                .setCustomId('follow_purchase')
-                                .setStyle(ButtonStyle.Primary)
-                                .setEmoji('🤑'),
-                            new ButtonBuilder()
-                                .setLabel('Editar carrinho')
-                                .setEmoji('✏️')
-                                .setCustomId('edit_cart')
-                                .setStyle(ButtonStyle.Secondary),
-                            new ButtonBuilder()
-                                .setLabel('Fechar carrinho')
-                                .setCustomId('close_cart')
-                                .setEmoji('🚮')
-                                .setStyle(ButtonStyle.Danger)
-                        ])
-                ] : [
-                    interaction.message.components[0],
-                    new ActionRowBuilder()
-                        .setComponents([
-                            new ButtonBuilder()
-                                .setLabel('Voltar')
-                                .setEmoji('⬅️')
-                                .setCustomId('back_cart')
-                                .setStyle(ButtonStyle.Secondary),
-                            new ButtonBuilder()
-                                .setLabel('Finalizar carrinho e ir à compra')
-                                .setCustomId('follow_purchase')
-                                .setStyle(ButtonStyle.Primary)
-                                .setEmoji('🤑'),
-                            new ButtonBuilder()
-                                .setLabel('Fechar carrinho')
-                                .setCustomId('close_cart')
-                                .setEmoji('🚮')
-                                .setStyle(ButtonStyle.Danger)
-                        ])
-                ]
-            })
+            if (interaction.message && interaction.message.editable) {
+                await interaction.message.edit({
+                    embeds: [
+                        new EmbedBuilder(interaction.message.embeds[0].data)
+                            .setFields(ticket.cart.length ? [
+                                {
+                                    name: `🛒 Carrinho`,
+                                    value: ticket.cart.map(product => `- ${product.amount}x ${product.name} (R$${product.price.toFixed(2)})`).join('\n') || 'Nenhum produto adicionado ainda.',
+                                    inline: true
+                                },
+                                {
+                                    name: `💰 Total`,
+                                    value: `R$${ticket.cart.reduce((acc, product) => acc + product.price * product.amount, 0).toFixed(2)}`,
+                                    inline: true
+                                }
+                            ] : [])
+                    ],
+                    components: ticket.cart.length ? [
+                        interaction.message.components[0],
+                        new ActionRowBuilder()
+                            .setComponents([
+                                new ButtonBuilder()
+                                    .setLabel('Voltar')
+                                    .setEmoji('⬅️')
+                                    .setCustomId('back_cart')
+                                    .setStyle(ButtonStyle.Secondary),
+                                new ButtonBuilder()
+                                    .setLabel('Ir para o pagamento')
+                                    .setCustomId('follow_purchase')
+                                    .setStyle(ButtonStyle.Primary)
+                                    .setEmoji('🤑'),
+                                new ButtonBuilder()
+                                    .setLabel('Editar carrinho')
+                                    .setEmoji('✏️')
+                                    .setCustomId('edit_cart')
+                                    .setStyle(ButtonStyle.Secondary),
+                                new ButtonBuilder()
+                                    .setLabel('Fechar carrinho')
+                                    .setCustomId('close_cart')
+                                    .setEmoji('🚮')
+                                    .setStyle(ButtonStyle.Danger)
+                            ])
+                    ] : [
+                        interaction.message.components[0],
+                        new ActionRowBuilder()
+                            .setComponents([
+                                new ButtonBuilder()
+                                    .setLabel('Voltar')
+                                    .setEmoji('⬅️')
+                                    .setCustomId('back_cart')
+                                    .setStyle(ButtonStyle.Secondary),
+                                new ButtonBuilder()
+                                    .setLabel('Ir para o pagamento')
+                                    .setCustomId('follow_purchase')
+                                    .setStyle(ButtonStyle.Primary)
+                                    .setEmoji('🤑'),
+                                new ButtonBuilder()
+                                    .setLabel('Fechar carrinho')
+                                    .setCustomId('close_cart')
+                                    .setEmoji('🚮')
+                                    .setStyle(ButtonStyle.Danger)
+                            ])
+                    ]
+                });
+            }
 
         } catch (error) {
             console.error(error);

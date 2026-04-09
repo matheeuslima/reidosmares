@@ -1,5 +1,7 @@
 import {
     ActionRowBuilder,
+    ButtonBuilder,
+    ButtonStyle,
     ChatInputCommandInteraction,
     Colors,
     ContainerBuilder,
@@ -12,6 +14,16 @@ import {
     TextDisplayBuilder
 } from "discord.js";
 import botConfig from "../config.json" with { type: "json" };
+import { MongoClient, ServerApiVersion } from "mongodb";
+import "dotenv/config";
+
+const mongoClient = new MongoClient(process.env.MONGODB_URI, {
+  serverApi: {
+    version: ServerApiVersion.v1,
+    strict: true,
+    deprecationErrors: true,
+  }
+});
 
 export default {
 
@@ -37,6 +49,8 @@ export default {
                 ])
             ]
         });
+
+        let storeIsEnabled = (await mongoClient.db().collection('config').findOne({ guildId: interaction.guildId }))?.storeDisabled !== true;
         
         await interaction.editReply({
             flags: [MessageFlags.IsComponentsV2],
@@ -85,6 +99,27 @@ export default {
                             .setDescription('Defina os cargos dados por quantidade gasta!')
                             .setValue('define_roles_by_spending'),
                         ])
+                    ]),
+                )
+                .addSeparatorComponents(
+                    new SeparatorBuilder()
+                    .setSpacing(SeparatorSpacingSize.Large)
+                )
+                .addActionRowComponents(
+                    new ActionRowBuilder()
+                    .setComponents([
+                        storeIsEnabled ? 
+                        new ButtonBuilder()
+                        .setLabel('Fechar loja')
+                        .setEmoji('🚪')
+                        .setCustomId('bot_disable')
+                        .setStyle(ButtonStyle.Danger)
+                        :
+                        new ButtonBuilder()
+                        .setLabel('Abrir loja')
+                        .setEmoji('🚪')
+                        .setCustomId('bot_enable')
+                        .setStyle(ButtonStyle.Success)
                     ])
                 )
             ]
