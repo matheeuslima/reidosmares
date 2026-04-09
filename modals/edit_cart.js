@@ -35,19 +35,16 @@ export default {
             }
 
             // Nova lógica: editar apenas o produto selecionado
-            const selectedProductId = interaction.fields.getField('edited_product')?.value;
+            const selectedProductId = interaction.fields.getStringSelectValues('edited_product')[0];
             const amountStr = interaction.fields.getTextInputValue('edited_amount');
             let amount = parseInt(amountStr);
             if (isNaN(amount)) amount = undefined;
 
-            let updated = false;
             ticket.cart = ticket.cart.map(product => {
                 if (product.id === selectedProductId) {
                     if (amount === 0) {
-                        updated = true;
-                        return null; // remove
+                        return null;
                     } else if (typeof amount === 'number' && !isNaN(amount)) {
-                        updated = true;
                         return { ...product, amount: Math.min(amount, product.stock) };
                     }
                 }
