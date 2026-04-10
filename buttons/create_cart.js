@@ -165,7 +165,7 @@ export default {
             setTimeout(() => {
                 console.log('verificando se o canal tá inativo');
                 if((client.tickets.get(ticketChannel.id))?.isConfirmed !== true) {
-                    ticketChannel.messages.fetch({author: interaction.user, limit: 1}).then(messages => {
+                    ticketChannel.messages.fetch({author: ticket.author, limit: 1}).then(messages => {
                         const lastMessage = messages.first();
                         if(lastMessage && lastMessage.createdTimestamp > ( Date.now() - (14.9 * 60 * 1000) )) return; // se a última mensagem do canal for mais recente que 15 minutos, não fecha o ticket
                         ticketChannel.delete('Carrinho deletado por inatividade').catch(console.error);
