@@ -19,6 +19,7 @@ export default {
 	 */
 	async execute(interaction) {
 		const ticket = client.tickets.get(interaction.channelId);
+		ticket.isConfirmed = true;
 
 		// carrinho vazio ou não encontrado
 		if (!ticket || !ticket.cart || ticket.cart.length === 0) return await interaction.reply({

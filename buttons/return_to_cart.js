@@ -11,6 +11,7 @@ import {
     TextDisplayBuilder
 } from "discord.js";
 import "dotenv/config";
+import client from "../src/Client.js";
 import { MongoClient, ServerApiVersion } from "mongodb";
 
 const mongoClient = new MongoClient(process.env.MONGODB_URI, {
@@ -57,6 +58,11 @@ export default {
                     ])
                 ]
             });
+
+            const ticket = client.tickets.get(interaction.channelId);
+            ticket.isConfirmed = null;
+            client.tickets.set(interaction.channelId, ticket);
+
         } catch (error) {
             console.error(error);
 
