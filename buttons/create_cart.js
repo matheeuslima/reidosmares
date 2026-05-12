@@ -163,11 +163,15 @@ export default {
             client.tickets ? client.tickets.set(ticketChannel.id, ticket) : client.tickets = new Collection().set(ticketChannel.id, ticket);
             
             setTimeout(() => {
-                console.log('verificando se o canal tá inativo');
+                console.log(`${ticketChannel.id} - Verificando inatividade do ticket`);
                 if((client.tickets.get(ticketChannel.id))?.isConfirmed !== true) {
+                    console.log(`${ticketChannel.id} - ticket não está confirmado, verificando mensagens`);
                     ticketChannel.messages.fetch({author: ticket.author, limit: 1}).then(messages => {
-                        const lastMessage = messages.first();
-                        if(lastMessage && lastMessage.createdTimestamp > ( Date.now() - (14.9 * 60 * 1000) )) return; // se a última mensagem do canal for mais recente que 15 minutos, não fecha o ticket
+                        console.log(`${ticketChannel.id} - Número de mensagens do cliente: ${messages.filter(m => m.author.id === ticket.author).size}`);
+                        const lastMessage = messages.filter(m => m.author.id === ticket.author).first();
+                        console.log(`${ticketChannel.id} - Última mensagem do cliente foi em ${lastMessage ? new Date(lastMessage.createdTimestamp).toLocaleString() : 'nenhuma mensagem encontrada'}`);
+                        if(lastMessage && lastMessage.createdTimestamp > ( Date.now() - (14.9 * 60 * 1000) )) return console.log(`${ticketChannel.id} - Não está inativo.`); // se a última mensagem do canal for mais recente que 15 minutos, não fecha o ticket
+                        console.log(`${ticketChannel.id} - Está inativo, fechando...`);
                         ticketChannel.delete('Carrinho deletado por inatividade').catch(console.error);
                         client.tickets.delete(ticketChannel.id);
                     })
