@@ -28,6 +28,20 @@ export default {
      * @param {ButtonInteraction} interaction
      */
     async execute(interaction) {
+        if(!interaction.member.permissions.has('ManageGuild')) {
+            return await interaction.reply({
+                flags: [MessageFlags.IsComponentsV2, MessageFlags.Ephemeral],
+                components: [
+                    new ContainerBuilder()
+                    .setAccentColor(Colors.Red)
+                    .addTextDisplayComponents([
+                        new TextDisplayBuilder()
+                        .setContent(`### ❌ Você precisa da permissão de **Gerenciar Servidor** para usar esse botão!`)
+                    ])
+                ]
+            });
+        }
+
         await interaction.deferReply({flags: [MessageFlags.IsComponentsV2]});
 
         try {
